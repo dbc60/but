@@ -1,0 +1,19 @@
+# See https://git-scm.com/docs/gitignore for details
+
+# Fossil SCM
+_FOSSIL_
+
+# build artifacts
+target/
+
+# WinMerge
+*.bak
+
+# Doxygen generated files
+docs/html/
+
+# RemedyBG debugger session-files
+*.rdbg
+
+# Obsidian
+*/.obsidian

@@ -1,0 +1,33 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 8
+---
+Language: Cpp
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveDeclarations: Consecutive
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Left
+AllowAllArgumentsOnNextLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+BreakBeforeBinaryOperators: All
+BreakInheritanceList: BeforeComma
+BreakConstructorInitializers: BeforeComma
+ColumnLimit: 89
+InsertNewlineAtEOF: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+LineEnding: LF
+PenaltyBreakBeforeFirstCallParameter: 21
+PenaltyBreakOpenParenthesis: 147
+QualifierAlignment: Right
+SeparateDefinitionBlocks: Always
+SortIncludes: false
+IfMacros:
+  - EXM_TRY
+  - EXM_CATCH_ALL
+  - EXM_FINALLY
+WhitespaceSensitiveMacros:
+  - EXM_END_TRY
+UseCRLF:         false
+UseTab:          Never
+---
