@@ -51,7 +51,8 @@ GLOBAL_VARIABLE EXMClosure default_closure_ = {default_handler};
 /*
  * N.B.: If a shared library (DLL, .so) spawns threads, each thread will have its own
  * instance of closure_. If you want those threads to use a closure other than the
- * default, then they will each have to register it for themselves.
+ * default, then they will each have to register it for themselves either directly, or by
+ * calling exm_register_closure(exm_closure *closure) defined below.
  */
 GLOBAL_VARIABLE THREAD_LOCAL exm_closure *closure_ = (exm_closure *)&default_closure_;
 

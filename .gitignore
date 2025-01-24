@@ -17,3 +17,6 @@ docs/html/
 
 # Obsidian
 */.obsidian
+
+# Visual Studio Code
+.vscode/

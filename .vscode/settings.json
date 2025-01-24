@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "*.txt": "ignore",
-        "types.h": "c"
-    }
-}

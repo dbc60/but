@@ -71,7 +71,7 @@ typedef u64 flag64;
 #define COMPARE(x, y) (((x) == (y)) * (~0))
 
 /// NEQ returns 0 if x==y and a non-zero value otherwise (it's just "x xor y").
-#define NEQ(x, y)     ((x) ^ (y))
+#define NEQ(x, y) ((x) ^ (y))
 
 // get_memory_info sets granularity and page_size to the system/platform values.
 void get_memory_info(u32 *granularity, u32 *page_size);

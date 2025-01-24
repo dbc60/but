@@ -19,8 +19,8 @@
 // needed.
 GLOBAL_VARIABLE THREAD_LOCAL char buf[KIBI(4)];
 
-// Use parentheses around the name "assert" to suppress expansion of the macro
-// "assert" so we can actually define the function.
+// Use parentheses around the name "assert" to suppress expansion of the "assert" macro
+// so we can actually define the function of the same name.
 void(assert)(int e) {
     assert(e);
 }
