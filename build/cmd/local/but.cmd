@@ -24,8 +24,7 @@ IF %build% EQU 1 (
         ECHO.
         ECHO Build the BUT driver test suite
     )
-    cl %CommonCompilerFlagsFinal% %CommonCompilerFlagsBuildDLL% ^
-    /I"%DIR_INCLUDE%" /DDLL_BUILD ^
+    cl %CommonCompilerFlagsFinal% /I"%DIR_INCLUDE%" /DDLL_BUILD ^
     %DIR_REPO%\but\context.c %DIR_REPO%\but\test.c %DIR_REPO%\but\butts.c ^
     /Fo:%DIR_OUT_OBJ%\but\ /Fd:%DIR_OUT_BIN%\but\butts.pdb ^
     /LD /link %CommonLinkerFlagsFinal% /LIBPATH:%DIR_OUT_LIB% ^
@@ -40,8 +39,7 @@ IF %build% EQU 1 (
         ECHO.
         ECHO Build the BUT driver test-data DLL
     )
-    cl %CommonCompilerFlagsFinal% %CommonCompilerFlagsBuildDLL% ^
-    /I"%DIR_INCLUDE%" /DDLL_BUILD ^
+    cl %CommonCompilerFlagsFinal% /I"%DIR_INCLUDE%" /DDLL_BUILD ^
     %DIR_REPO%\but\test_data.c ^
     /Fo:%DIR_OUT_OBJ%\but\ ^
     /Fd:%DIR_OUT_BIN%\but\test_data.pdb ^

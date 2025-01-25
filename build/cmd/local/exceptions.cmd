@@ -44,8 +44,7 @@ IF %build% EQU 1 (
         ECHO.
         ECHO Build the Exceptions test suite
     )
-    cl %CommonCompilerFlagsFinal% %CommonCompilerFlagsBuildDLL% /wd4456 ^
-    /I%DIR_INCLUDE% /DDLL_BUILD ^
+    cl %CommonCompilerFlagsFinal% /wd4456 /I%DIR_INCLUDE% /DDLL_BUILD ^
     %DIR_REPO%\exceptions\butts.c ^
     /Fo:%DIR_OUT_OBJ%\exceptions\ /Fd:%DIR_OUT_LIB%\exceptions\butts.pdb ^
     /LD /link %CommonLinkerFlagsFinal% ^

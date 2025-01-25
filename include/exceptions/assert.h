@@ -62,7 +62,6 @@ void exm_throw_assertion(char const *reason, char const *file_name, int line);
  * @param e the condition being asserted.
  */
 extern void assert(int e);
-// extern void assert_file_line(int e, const char *file, int line);
 
 /**
  * @brief redefine assert(e) to use the EXM_ASSERT(e) macro.

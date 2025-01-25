@@ -112,13 +112,16 @@ SETLOCAL ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
 :: /GR-     disable C++ RTTI
 :: /EHa-    disable C++ EH (w/ SEH exceptions)
 :: /EHsc    enable C++ EH, extern "C" defaults to nothrow
+:: /std:c11 enable C11 standard
+:: /experimental:c11atomics enable C11 atomics
 :: /Oi      enable intrinsic functions
 :: /WX      treat warnings as errors
 :: /W4      set warning level 4
 :: /FC      use full pathnames in diagnostics
 :: /DNAME   define a macro called NAME
 SET CommonCompilerFlags=/nologo /Zc:wchar_t,forScope,inline /Gd /Gm- /GR- /EHa- /EHsc ^
-    /Oi /WX /W4 /volatile:iso /wd4127 /FC /D_UNICODE /DUNICODE /D_WIN32 /DWIN32
+    /std:c11 /experimental:c11atomics /Oi /WX /W4 /volatile:iso /wd4127 /FC /D_UNICODE ^
+    /DUNICODE /D_WIN32 /DWIN32
 
 ::SET CStandardLibraryIncludeFlags=/I"%VSINSTALLDIR%SDK\ScopeCppSDK\SDK\include\ucrt"
 ::SET CMicrosoftIncludeFlags=/I"%VSINSTALLDIR%SDK\ScopeCppSDK\SDK\include\um" ^
@@ -144,8 +147,21 @@ SET CommonCompilerFlagsOPTIMIZE=/MT /GL /O2 /Oi /favor:blend %CommonCompilerFlag
 :: Preprocessor definitions for a Library build
 SET CommonCompilerFlagsBuildLIB=/D_LIB
 
-:: Preprocessor definitions for a DLL build
-SET CommonCompilerFlagsBuildDLL=/D_USRDLL /D_WINDLL
+:: Per https://learn.microsoft.com/en-us/cpp/build/regular-dlls-statically-linked-to-mfc?view=msvc-170
+:: Even though the term USRDLL is obsolete, you must still define "_USRDLL" on the
+:: compiler command line. This definition determines which declarations is pulled in from
+:: the MFC header files.
+::
+:: Per https://learn.microsoft.com/en-us/cpp/mfc/tn011-using-mfc-as-part-of-a-dll?view=msvc-170
+::
+::  When compiling regular MFC DLLs that statically link to MFC, the symbols _USRDLL and
+::  _WINDLL must be defined. Your DLL code must also be compiled with the following compiler switches:
+::
+::      /D_WINDLL signifies the compilation is for a DLL
+::      /D_USRDLL signifies the compilation is for a regular MFC DLL
+::
+:: I don't build MFC DLLs, so I don't need to define _WINDLL. I do need to define _USRDLL.
+SET CommonCompilerFlagsBuildMFC=
 
 :: Choose either Debug or Optimized Compiler Flags
 IF %release% EQU 1 (
@@ -176,7 +192,7 @@ if %debug% EQU 1 (
     SET CommonLibrarianFlags=/nologo
 )
 
-REM "LTCG" stands for link-time code generation.
+:: "LTCG" stands for link-time code generation.
 if %release EQU 1 (
     SET CommonLibrarianFlags=/LTCG /nologo
 )
@@ -200,4 +216,5 @@ ENDLOCAL & (
     SET "CommonCompilerFlagsFinal=%CommonCompilerFlagsFinal%"
     SET "CommonLinkerFlagsFinal=%CommonLinkerFlagsFinal%"
     SET "CommonLibrarianFlags=%CommonLibrarianFlags%"
+    SET "CommonCompilerFlagsBuildMFC=%CommonCompilerFlagsBuildMFC%"
 )

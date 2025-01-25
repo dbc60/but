@@ -181,6 +181,7 @@ ENDLOCAL & (
     SET "CommonCompilerFlagsFinal=%CommonCompilerFlagsFinal%"
     SET "CommonLinkerFlagsFinal=%CommonLinkerFlagsFinal%"
     SET "CommonLibrarianFlags=%CommonLibrarianFlags%"
+    SET "CommonCompilerFlagsBuildMFC=%CommonCompilerFlagsBuildMFC%"
 
     REM Export all command-line options except for win32
     SET "options=%options%"
