@@ -34,7 +34,11 @@
 extern "C" {
 #endif
 
-void *CDECL memcpy(void *restrict s1, const void *restrict s2, size_t n);
+// disable warning C28251: Inconsistent annotation for 'memcpy': this instance has no
+// annotations.
+// #pragma warning(disable : 28251) // for when /analyze is on
+
+void *CDECL memcpy(void *restrict dst, const void *restrict src, size_t n);
 #pragma intrinsic(memcpy)
 
 void *CDECL memset(void *, int, size_t);

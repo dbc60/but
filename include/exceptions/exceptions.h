@@ -151,8 +151,9 @@ extern EXMReason exm_internal_error;
 #define EXM_TRY                                                          \
     do {                                                                 \
         EXMEnvironment exm_env_ = {0};                                   \
-        exm_closure   *cl       = exm_get_closure();                     \
-        EXMClosure    *exm_ctx_ = CONTAINER_OF(cl, EXMClosure, handler); \
+        exm_env_.reason         = exm_not_implemented;                   \
+        exm_closure *cl         = exm_get_closure();                     \
+        EXMClosure  *exm_ctx_   = CONTAINER_OF(cl, EXMClosure, handler); \
         exm_env_.next           = exm_ctx_->stack;                       \
         exm_ctx_->stack         = &exm_env_;                             \
         exm_env_.state          = setjmp(exm_env_.buf);                  \

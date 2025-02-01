@@ -39,6 +39,13 @@ SETLOCAL ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
 ::   /wd4189 - 'identifier' : local variable is initialized but not referenced
 ::   /wd4127 - conditional expression is constant ("do {...} while (0)" in macros)
 ::   /wd4456 - warning C4456: declaration of '<var>' hides previous local declaration
+::   /wd6246 - Local declaration of '<var>' hides declaration of the same name in outer scope. This warning
+::             occurs when the /analyze option is used. The exception code can cause nested blocks each
+::             declaring exm_env_. This warning is not a problem.
+::   /wd28301: No annotations for first declaration of "var"
+
+:: TODO: add a build option to include /analyze. This is a static code analysis tool
+SET ANALYZE_FLAGS= /analyze /wd6246 /wd28301
 
 :: /FC use full pathnames in diagnostics
 
@@ -113,14 +120,15 @@ SETLOCAL ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
 :: /EHa-    disable C++ EH (w/ SEH exceptions)
 :: /EHsc    enable C++ EH, extern "C" defaults to nothrow
 :: /std:c11 enable C11 standard
-:: /experimental:c11atomics enable C11 atomics
+:: /std:c17 enable C17 standard (a bug fix for C11)
+:: /experimental:c11atomics enable C11/C17 atomics
 :: /Oi      enable intrinsic functions
 :: /WX      treat warnings as errors
 :: /W4      set warning level 4
 :: /FC      use full pathnames in diagnostics
 :: /DNAME   define a macro called NAME
 SET CommonCompilerFlags=/nologo /Zc:wchar_t,forScope,inline /Gd /Gm- /GR- /EHa- /EHsc ^
-    /std:c11 /experimental:c11atomics /Oi /WX /W4 /volatile:iso /wd4127 /FC /D_UNICODE ^
+    /std:c17 /experimental:c11atomics /Oi /WX /W4 /volatile:iso /wd4127 /FC /D_UNICODE ^
     /DUNICODE /D_WIN32 /DWIN32
 
 ::SET CStandardLibraryIncludeFlags=/I"%VSINSTALLDIR%SDK\ScopeCppSDK\SDK\include\ucrt"
