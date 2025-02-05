@@ -71,54 +71,29 @@ extern EXMReason exm_internal_error;
  * @param reason is the EXMReason string that briefly describes the exception.
  * @param details a string that adds details to the reason why the exception was thrown.
  */
-#define EXM_THROW_DETAILS(reason, details)             \
-    do {                                               \
-        static char _buf[256];                         \
-        snprintf(_buf, sizeof _buf, details);          \
-        exm_throw((reason), _buf, __FILE__, __LINE__); \
-    } while (0)
-
-#define EXM_THROW_DETAILS_FILE_LINE(reason, details, file, line) \
-    do {                                                         \
-        static char _buf[256];                                   \
-        snprintf(_buf, sizeof _buf, details);                    \
-        exm_throw((reason), _buf, file, line);                   \
-    } while (0)
-
-/**
- * @brief EXM_THROW_VA throws an exception where the reason is a format string and the
- * arguments match the format specifiers.
- *
- * There is a limit of 256 bytes in the buffer used for formatting the reason.
- *
- * @param reason is the EXMReason string that briefly describes the exception.
- * @param fmt is a C language printf-style format string for the var args.
- *
- */
-#define EXM_THROW_VA(reason, fmt, ...)                       \
+#define EXM_THROW_DETAILS(reason, details, ...)              \
     do {                                                     \
-        static char details[256];                            \
-        snprintf(details, sizeof details, fmt, __VA_ARGS__); \
-        exm_throw((reason), details, __FILE__, __LINE__);    \
+        static char _buf[256];                               \
+        snprintf(_buf, sizeof _buf, details, ##__VA_ARGS__); \
+        exm_throw((reason), _buf, __FILE__, __LINE__);       \
     } while (0)
 
 /**
- * @brief EXM_THROW_VA throws an exception where the reason is a format string and the
- * arguments match the format specifiers.
+ * @brief throw an exception where the details is a format string with optional format
+ * specifiers.
  *
  * There is a limit of 256 bytes in the buffer used for formatting the reason.
  *
  * @param reason is the EXMReason string that briefly describes the exception.
+ * @param details is a C language printf-style format string for the var args.
  * @param file is the path to the source file where the exception was thrown.
  * @param line is the line number in the source file where the exception was thrown.
- * @param fmt is a C language printf-style format string for the var args.
- *
  */
-#define EXM_THROW_VA_FILE_LINE(reason, file, line, fmt, ...) \
-    do {                                                     \
-        static char details[256];                            \
-        snprintf(details, sizeof details, fmt, __VA_ARGS__); \
-        exm_throw((reason), details, file, line);            \
+#define EXM_THROW_DETAILS_FILE_LINE(reason, details, file, line, ...) \
+    do {                                                              \
+        static char _buf[256];                                        \
+        snprintf(_buf, sizeof _buf, details, ##__VA_ARGS__);          \
+        exm_throw((reason), _buf, file, line);                        \
     } while (0)
 
 /**

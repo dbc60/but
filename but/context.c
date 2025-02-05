@@ -149,7 +149,7 @@ void but_test(BUTContext *ctx) {
         result = BUT_FAILED;
         new_result(ctx, BUT_FAILED, invalid_test_case);
         ctx->env.test_failures++;
-        EXM_THROW_VA(invalid_test_case, "test case %u does not exist", ctx->env.index);
+        EXM_THROW_DETAILS(invalid_test_case, "test case %u does not exist", ctx->env.index);
     }
 
     if (tc->setup != NULL) {

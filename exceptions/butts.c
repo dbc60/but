@@ -67,7 +67,7 @@ INTERNAL_FUNCTION void test_throw_details_file_line(BUTTestCase *btc) {
 INTERNAL_FUNCTION void test_throw_var_args(BUTTestCase *btc) {
     UNUSED_PARAMETER(btc);
     EXM_TRY {
-        EXM_THROW_VA(test_exception, "format %s", "test");
+        EXM_THROW_DETAILS(test_exception, "test");
     }
     EXM_CATCH(test_exception) {
         ; // Success
@@ -78,7 +78,7 @@ INTERNAL_FUNCTION void test_throw_var_args(BUTTestCase *btc) {
 INTERNAL_FUNCTION void test_throw_var_args_file_line(BUTTestCase *btc) {
     UNUSED_PARAMETER(btc);
     EXM_TRY {
-        EXM_THROW_VA_FILE_LINE(test_exception, "source file", 0, "format %s", "test");
+        EXM_THROW_DETAILS_FILE_LINE(test_exception, "test", "source file", 0);
     }
     EXM_CATCH(test_exception) {
         ; // Success
