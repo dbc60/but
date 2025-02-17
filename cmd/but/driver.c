@@ -15,11 +15,14 @@
 
 #include <stddef.h> // size_t
 #include <stdio.h>  // printf
+#include <stdlib.h> // exit
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h> // HMODULE
+
+static EXMReason continue_to_next_test = "continue to next test";
 
 /**
  * @brief The exception handler for the BUT test driver.
@@ -43,6 +46,7 @@ static void but_exception_handler(exm_closure *closure, EXMReason reason,
         } else {
             printf("        %s: %s @%s:%d\n", reason, details, file, line);
         }
+        EXM_THROW(continue_to_next_test);
     }
 }
 
@@ -104,15 +108,25 @@ static void display_test_results(BUTContext *ctx, BUTTestSuite *bts) {
     }
 }
 
-static void test_driver(BUTContext *ctx, BUTTestSuite *bts) {
+static void exercise_test_suite(BUTContext *ctx, BUTTestSuite *bts) {
     but_begin(ctx, bts);
     while (but_has_more(ctx)) {
         display_test_case(ctx);
-        but_test(ctx);
+        EXM_TRY {
+            but_test(ctx);
+        }
+        EXM_CATCH(continue_to_next_test) {
+            ; // continue
+        }
+        EXM_END_TRY;
         but_next(ctx);
     }
 
     display_test_results(ctx, bts);
+    if (ctx->env.results_count > 0) {
+        printf("\nExiting with %u test failures.\n", ctx->env.results_count);
+        exit(-1);
+    }
 }
 
 // The command-line test driver interface
@@ -148,11 +162,13 @@ int main(int argc, char **argv) {
                     but_initialize(&ctx);
                     bts                 = get_test_suite();
                     ctx.exm_ctx.handler = but_exception_handler;
+                    // register our exception handler with both the local exception
+                    // manager and the test suite's exception manager
                     exm_register_closure(&ctx.exm_ctx.handler);
                     register_closure(&ctx.exm_ctx.handler);
                     printf("\n%s (%u): test suite %d of %d\n", bts->name, bts->count, i,
                            argc - 1);
-                    test_driver(&ctx, bts);
+                    exercise_test_suite(&ctx, bts);
                     test_suites++;
                     if (i < argc) {
                         printf("*******************************************\n");
