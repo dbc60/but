@@ -15,14 +15,11 @@
 
 #include <stddef.h> // size_t
 #include <stdio.h>  // printf
-#include <stdlib.h> // exit
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h> // HMODULE
-
-static EXMReason continue_to_next_test = "continue to next test";
 
 /**
  * @brief The exception handler for the BUT test driver.
@@ -46,7 +43,6 @@ static void but_exception_handler(exm_closure *closure, EXMReason reason,
         } else {
             printf("        %s: %s @%s:%d\n", reason, details, file, line);
         }
-        EXM_THROW(continue_to_next_test);
     }
 }
 
@@ -115,18 +111,14 @@ static void exercise_test_suite(BUTContext *ctx, BUTTestSuite *bts) {
         EXM_TRY {
             but_test(ctx);
         }
-        EXM_CATCH(continue_to_next_test) {
-            ; // continue
+        EXM_CATCH_ALL {
+            EXM_RETHROW;
         }
         EXM_END_TRY;
         but_next(ctx);
     }
 
     display_test_results(ctx, bts);
-    if (ctx->env.results_count > 0) {
-        printf("\nExiting with %u test failures.\n", ctx->env.results_count);
-        exit(-1);
-    }
 }
 
 // The command-line test driver interface

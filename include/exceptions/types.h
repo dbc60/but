@@ -10,7 +10,7 @@
  *
  * See LICENSE.txt for copyright and licensing information about this file.
  */
-#include <setjmp.h> // for jmp_buf
+#include <setjmp.h> // jmp_buf
 
 #if defined(__cplusplus)
 extern "C" {

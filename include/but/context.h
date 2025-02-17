@@ -116,7 +116,7 @@ bool but_has_more(BUTContext *ctx);
  *
  * @return the name of the current test case.
  */
-const char *but_get_test_case_name(BUTContext *ctx);
+char const *but_get_test_case_name(BUTContext *ctx);
 
 /**
  * @brief retrieve the index of the current test case.

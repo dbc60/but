@@ -149,7 +149,8 @@ void but_test(BUTContext *ctx) {
         result = BUT_FAILED;
         new_result(ctx, BUT_FAILED, invalid_test_case);
         ctx->env.test_failures++;
-        EXM_THROW_DETAILS(invalid_test_case, "test case %u does not exist", ctx->env.index);
+        EXM_THROW_DETAILS(invalid_test_case, "test case %u does not exist",
+                          ctx->env.index);
     }
 
     if (tc->setup != NULL) {
@@ -162,6 +163,7 @@ void but_test(BUTContext *ctx) {
                 new_result(ctx, BUT_FAILED_SETUP, EXM_REASON);
                 ctx->env.setup_failures++;
             }
+            ctx->env.run_count++;
             EXM_RETHROW;
         }
         EXM_END_TRY;
@@ -177,15 +179,12 @@ void but_test(BUTContext *ctx) {
                     new_result(ctx, BUT_FAILED, EXM_REASON);
                     ctx->env.test_failures++;
                 }
+                ctx->env.run_count++;
                 EXM_RETHROW;
             }
-            EXM_FINALLY {
-                ctx->env.run_count++;
-            }
             EXM_END_TRY;
-        } else {
-            ctx->env.run_count++;
         }
+        ctx->env.run_count++;
     }
 
     if (tc->cleanup != NULL) {
