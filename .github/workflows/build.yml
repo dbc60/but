@@ -9,41 +9,36 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     strategy:
       matrix:
         config: [debug, release]
         platform: [x64, x86]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Setup Visual Studio environment
       uses: microsoft/setup-msbuild@v2
       with:
         msbuild-architecture: ${{ matrix.platform }}
-    
+
     - name: Setup VS Developer Command Prompt
       uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: ${{ matrix.platform }}
-    
-    - name: Create metrics directory
-      run: |
-        if (!(Test-Path "metrics")) { New-Item -ItemType Directory -Name "metrics" }
-      shell: powershell
-    
+
     - name: Build BUT project (${{ matrix.config }}, ${{ matrix.platform }})
       run: |
         .\build\cmd\all.cmd ${{ matrix.config }} ${{ matrix.platform }} build
       shell: cmd
-    
+
     - name: Run unit tests
       run: |
         .\build\cmd\all.cmd ${{ matrix.config }} ${{ matrix.platform }} test
       shell: cmd
-    
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       if: matrix.config == 'release'
@@ -54,12 +49,3 @@ jobs:
           target/**/bin/*.dll
           target/**/bin/*.pdb
         retention-days: 30
-    
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results-${{ matrix.config }}-${{ matrix.platform }}
-        path: |
-          metrics/*.ctm
-        retention-days: 7
