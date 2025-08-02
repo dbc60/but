@@ -2,7 +2,7 @@
 #define BUT_PLATFORM_H_
 
 /**
- * @file platform.h
+ * @file abbreviated_types.h
  * @author Douglas Cuthbertson
  * @brief platform-wide type definitions and macros.
  * @version 0.1.0

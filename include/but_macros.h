@@ -2,7 +2,7 @@
 #define BUT_PROJECT_H_
 
 /**
- * @file project.h
+ * @file but_macros.h
  * @author Douglas Cuthbertson
  * @brief Project-wide macro definitions.
  * @version 0.1
@@ -33,7 +33,7 @@
 #else                                                        // !__cplusplus
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L // C23 or later
 #define THREAD_LOCAL thread_local
-#else // !(__STDC_VERSION__ && __STDC_VERSION__ >= 202311L)
+#else                                 // !(__STDC_VERSION__ && __STDC_VERSION__ >= 202311L)
 #if defined(_WIN32) || defined(WIN32) // _Thread_local and thread_local are undefined.
 #define THREAD_LOCAL __declspec(thread)
 #else // !(_WIN32 || WIN32)
@@ -51,41 +51,49 @@ extern "C" {
 // nice to use, but are entirely optional.
 
 /**
- * @brief INTERNAL_FUNCTION applied to a function definition declares that the function
+ * @brief BUT_INTERNAL applied to a function definition declares that the function
  * is local to the compilation unit.
  */
-#define INTERNAL_FUNCTION static
+#define BUT_INTERNAL static
 
 /**
- * @brief LOCAL_VARIABLE applied to a variable inside a function declares that the
+ * @brief BUT_LOCAL applied to a variable inside a function declares that the
  * variable is persistent (it is not a stack variable) and is available only to the
  * function.
  */
-#define LOCAL_VARIABLE static
+#define BUT_LOCAL static
 
 /**
- * @brief GLOBAL_VARIABLE applied to a variable outside a function declares that the
+ * @brief BUT_GLOBAL applied to a variable outside a function declares that the
  * variable is local to the compilation unit.
  */
-#define GLOBAL_VARIABLE static
+#define BUT_GLOBAL static
 
-/**
- * @brief Stringize a value.
+/*
+ * Stringize a value.
  *
- * Usage: PROJECT_STR(30) creates the string "30".
+ * Usage:
+ *  #pragma message("DBG: Compiling " __FILE__)
+ *  #pragma message ("DBG: " __FILE__ "(" BUT_STR(__LINE__) "): test")
+ *  #pragma message("DBG: DLL_SPEC " BUT_STR(DLL_SPEC))
+ *
+ * Example Output:
+ *  DBG: Compiling W:\faultline\but\driver.c
+ *  DBG: W:\faultline\but\driver.c(23): test
+ *  DBG: DLL_SPEC __declspec(dllexport)
  */
-#define PROJECT_XSTR(x) #x
-#define PROJECT_STR(x)  PROJECT_XSTR(x)
+#define BUT_XSTR(x) #x
+#define BUT_STR(x)  BUT_XSTR(x)
 
 /**
  * @brief Explicitly note the intent of not using a function parameter.
  *
  * It can eliminate compiler warnings about unused parameters.
  */
-#define UNUSED_PARAMETER(P) (P)
+#define BUT_UNUSED(P) ((void)(P))
 
 /// The number of elements in a fixed-size array
-#define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
+#define BUT_ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
 
 /**
  * @brief Calculate the address of a struct given the address of a field in the
@@ -93,22 +101,21 @@ extern "C" {
  * points. This is equivalent of Microsoft's CONTAINING_RECORD and Linux's
  * container_of macros.
  */
-#define CONTAINER_OF(addr, type, member) \
-    ((type *)(((char *)(addr)) - offsetof(type, member)))
+#define BUT_CONTAINER(addr, type, member) ((type *)(((char *)(addr)) - offsetof(type, member)))
 
 /**
- * @brief Given a type and a member, MEMBER_SIZE calculates the size of the member in
+ * @brief Given a type and a member, BUT_MEMBER_SIZE calculates the size of the member in
  * bytes at compile time.
  */
-#define MEMBER_SIZE(type, member) sizeof(((type *)0)->member)
+#define BUT_MEMBER_SIZE(type, member) sizeof(((type *)0)->member)
 
 #if defined(_WIN32) || defined(WIN32)
-#define DATA_SPEC_EXPORT __declspec(dllexport)
-#define DATA_SPEC_IMPORT __declspec(dllimport)
+#define DLL_SPEC_EXPORT __declspec(dllexport)
+#define DLL_SPEC_IMPORT __declspec(dllimport)
 #if defined(DLL_BUILD)
-#define DATA_SPEC __declspec(dllexport)
+#define DLL_SPEC __declspec(dllexport)
 #else // DLL_BUILD
-#define DATA_SPEC __declspec(dllimport)
+#define DLL_SPEC __declspec(dllimport)
 #endif // DLL_BUILD
 #if !defined STDCALL
 #define STDCALL __stdcall
@@ -117,7 +124,7 @@ extern "C" {
 #define CDECL __cdecl
 #endif // CDECL
 #else  // _WIN32 || WIN32
-#define DATA_SPEC
+#define DLL_SPEC
 #define STDCALL
 #define CDECL
 #endif

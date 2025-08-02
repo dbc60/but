@@ -1,5 +1,5 @@
-#ifndef CRY_EXCEPTIONS_ASSERT_H_
-#define CRY_EXCEPTIONS_ASSERT_H_
+#ifndef BUT_EXCEPTION_ASSERT_H_
+#define BUT_EXCEPTION_ASSERT_H_
 
 /**
  * @file assert.h
@@ -10,19 +10,35 @@
  *
  * See LICENSE.txt for copyright and licensing information about this file.
  */
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 // define our own assert macro
 #ifdef assert
 #undef assert
 #endif
 
-#if !defined(DEBUG)
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-#endif
+#if !defined(_DEBUG)
+#include <but_macros.h> // BUT_UNUSED
 
-#ifdef NDEBUG
-#define assert(e) ((void)0)
+#define assert(e)      \
+    do {               \
+        BUT_UNUSED(e); \
+    } while (0)
+
+#define BUT_ASSERT(e)  \
+    do {               \
+        BUT_UNUSED(e); \
+    } while (0)
+
+#define BUT_ASSERT_FILE_LINE(e, FILE, LINE) \
+    do {                                    \
+        BUT_UNUSED(e);                      \
+        BUT_UNUSED(FILE);                   \
+        BUT_UNUSED(LINE);                   \
+    } while (0)
 #else
 #if defined(__cplusplus)
 extern "C" {
@@ -36,41 +52,43 @@ extern "C" {
  * @param file_name the full path to the file in which the assertion failed.
  * @param line the line number of the failed assertion.
  */
-void exm_throw_assertion(char const *reason, char const *file_name, int line);
+void but_throw_assertion(char const *reason, char const *file_name, int line);
 
 /**
  * @brief test an assertion; if it fails throw an exception where the reason is
  * a string representing the assertion.
  */
-#define EXM_ASSERT(e)                                      \
+#define BUT_ASSERT(e)                                      \
     do {                                                   \
         if (!(e)) {                                        \
-            exm_throw_assertion((#e), __FILE__, __LINE__); \
+            but_throw_assertion((#e), __FILE__, __LINE__); \
         }                                                  \
     } while (0)
 
-#define EXM_ASSERT_FILE_LINE(e, FILE, LINE)        \
+/**
+ * @brief test an assertion; if it fails throw an exception where the reason is
+ * a string representing the assertion.
+ */
+#define BUT_ASSERT_FILE_LINE(e, FILE, LINE)        \
     do {                                           \
         if (!(e)) {                                \
-            exm_throw_assertion((#e), FILE, LINE); \
+            but_throw_assertion((#e), FILE, LINE); \
         }                                          \
     } while (0)
 
 /**
- * @brief a function wrapper around the assert macro.
- *
- * @param e the condition being asserted.
- */
-extern void assert(int e);
-
-/**
- * @brief redefine assert(e) to use the EXM_ASSERT(e) macro.
+ * @brief redefine assert(e) to use the BUT_ASSERT(e) macro.
  *
  */
-#define assert(e) EXM_ASSERT(e)
+#define assert(e) BUT_ASSERT(e)
 
 #if defined(__cplusplus)
 }
 #endif
-#endif // NDEBUG
-#endif // CRY_EXCEPTIONS_ASSERT_H_
+#endif // _DEBUG
+
+#if defined(__cplusplus)
+}
+#endif
+
+#endif // BUT_EXCEPTION_ASSERT_H_

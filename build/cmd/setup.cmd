@@ -140,9 +140,9 @@ if %trace% EQU 1 (
 :: Delete the build artifacts from all configurations of the VS build folder
 IF %cleanall% EQU 1 (
     if %verbose% EQU 1 (
-        IF EXIST %DIR_OUT_BASE% ECHO Clean All: deleting directory: %DIR_OUT_BASE%
+        IF EXIST %DIR_TARGET% ECHO Clean All: deleting directory: %DIR_TARGET%
     )
-    IF EXIST %DIR_OUT_BASE% RD /S /Q %DIR_OUT_BASE%
+    IF EXIST %DIR_TARGET% DEL /S /Q %DIR_TARGET%\*
     SET VSSOLUTION=
 )
 

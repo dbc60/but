@@ -1,5 +1,5 @@
-#ifndef CRY_DLIST_H_
-#define CRY_DLIST_H_
+#ifndef BUT_DLIST_H_
+#define BUT_DLIST_H_
 
 /**
  * @file dlist.h
@@ -93,4 +93,4 @@ typedef struct DList DList;
 }
 #endif
 
-#endif // CRY_DLIST_H_
+#endif // BUT_DLIST_H_

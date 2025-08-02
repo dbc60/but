@@ -1,5 +1,5 @@
-#ifndef CRY_MATH_H_
-#define CRY_MATH_H_
+#ifndef BUT_MATH_H_
+#define BUT_MATH_H_
 
 /**
  * @file math.h
@@ -24,17 +24,16 @@
 #error math_generic.h is not yet implemented
 #endif
 
-#include <platform.h> // u16, u32, u64
+#include <abbreviated_types.h> // u16, u32, u64
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#define SUM_OVER_SCALED_RANGE(LO, HI, SCALE, SZ)                           \
-    do {                                                                   \
-        u32 SR = (u32)((HI) - (LO)) / (SCALE) + 1;                         \
-        (SZ)   = (SR % 2) ? (((LO) + ((HI) - (SCALE))) * (SR >> 1)) + (HI) \
-                          : ((LO) + (HI)) * (SR >> 1);                     \
+#define SUM_OVER_SCALED_RANGE(LO, HI, SCALE, SZ)                                                        \
+    do {                                                                                                \
+        u32 SR = (u32)((HI) - (LO)) / (SCALE) + 1;                                                      \
+        (SZ)   = (SR % 2) ? (((LO) + ((HI) - (SCALE))) * (SR >> 1)) + (HI) : ((LO) + (HI)) * (SR >> 1); \
     } while (0)
 
 /**
@@ -107,4 +106,4 @@ u16 math_pop_count64(u64 val);
 }
 #endif
 
-#endif // CRY_MATH_H_
+#endif // BUT_MATH_H_

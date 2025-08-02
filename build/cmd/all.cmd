@@ -3,30 +3,39 @@ SETLOCAL ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
 
 :: See LICENSE.txt for copyright and licensing information about this file.
 
+if NOT EXIST metrics (
+    md metrics
+)
+ctime.exe -begin metrics\all.ctm
+
 SET DIR_CMD=%~dp0
 SET DIR_CMD=%DIR_CMD:~0,-1%
-SET DIR_LOCAL=%DIR_CMD%\local
 CALL %DIR_CMD%\options.cmd %*
 CALL %DIR_CMD%\setup.cmd %*
 
-if %verbose% EQU 1 (
-    ECHO "Build the Exceptions library (%*)"
+set "args="
+for %%A in (%*) do (
+    if /I not "%%~A"=="test" if /I not "%%~A"=="clean" if /I not "%%~A"=="cleanall" (
+        set "args=!args! %%~A"
+    )
+    if /I "%%~A"=="test" (
+        set "args=!args! build"
+    )
 )
-call %DIR_LOCAL%\exceptions.cmd %*
+
+call %DIR_CMD%\exception.cmd !args!
 if errorlevel 1 (
-    ECHO "failed to build the Exceptions library (%*)"
+    ctime.exe -end metrics\all.ctm %errorlevel%
     GOTO :EOF
 )
 
-if %verbose% EQU 1 (
-    ECHO "Build the Basic Unit Test library and driver (%*)"
-)
-call %DIR_LOCAL%\but.cmd %*
+call %DIR_CMD%\but.cmd !args!
 if errorlevel 1 (
-    ECHO "failed to build the Basic Unit Test library and driver (%*)"
+    ctime.exe -end metrics\all.ctm %errorlevel%
     GOTO :EOF
 )
 
+ctime.exe -end metrics\all.ctm %errorlevel%
 
 if %test% EQU 1 (
     if %verbose% EQU 1 (
@@ -35,9 +44,9 @@ if %test% EQU 1 (
     )
     TITLE Unit Tests
     pushd %DIR_OUT_BIN%
-    but\but.exe ^
-        exceptions\butts.dll ^
-        but\butts.dll
+    but.exe ^
+        exception_butts.dll ^
+        but_butts.dll
     popd
 )
 ENDLOCAL

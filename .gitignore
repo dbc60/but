@@ -10,7 +10,7 @@ target/
 *.bak
 
 # Doxygen generated files
-docs/html/
+*/html/
 
 # RemedyBG debugger session-files
 *.rdbg
@@ -20,3 +20,7 @@ docs/html/
 
 # Visual Studio Code
 .vscode/
+
+# ctime
+ctime.exe
+*.ctm

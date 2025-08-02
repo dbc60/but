@@ -3,11 +3,9 @@
 # top-most EditorConfig file
 root = true
 
-# Unix-style newlines with a newline ending every file
 [*]
 indent_style = space
 indent_size = 4
-end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
@@ -15,6 +13,7 @@ insert_final_newline = true
 # C/C++ Standards
 [*.{c,cpp,cc,h}]
 max_line_length = 90
+end_of_line = lf
 
 [*.{md,markdown}]
 indent_size = 4

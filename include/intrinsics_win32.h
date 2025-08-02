@@ -26,7 +26,7 @@
  *
  * See LICENSE.txt for copyright and licensing information about this file.
  */
-#include <project.h>
+#include <but_macros.h>
 
 #include <stddef.h> // size_t
 
@@ -38,7 +38,7 @@ extern "C" {
 // annotations.
 // #pragma warning(disable : 28251) // for when /analyze is on
 
-void *CDECL memcpy(void *restrict dst, const void *restrict src, size_t n);
+void *CDECL memcpy(void *restrict dst, void const *restrict src, size_t n);
 #pragma intrinsic(memcpy)
 
 void *CDECL memset(void *, int, size_t);

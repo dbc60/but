@@ -119,16 +119,21 @@ SET ANALYZE_FLAGS= /analyze /wd6246 /wd28301
 :: /GR-     disable C++ RTTI
 :: /EHa-    disable C++ EH (w/ SEH exceptions)
 :: /EHsc    enable C++ EH, extern "C" defaults to nothrow
+:: /GS-     turn off security checks
+:: /Gs9999999 set the stack probe size to 9,999,999 bytes. This value will basically
+::            eliminate stack probes.
 :: /std:c11 enable C11 standard
-:: /std:c17 enable C17 standard (a bug fix for C11)
+:: /std:c17 enable C17 standard. It also enables "##__VA_ARGS__" in macros.
 :: /experimental:c11atomics enable C11/C17 atomics
 :: /Oi      enable intrinsic functions
 :: /WX      treat warnings as errors
 :: /W4      set warning level 4
 :: /FC      use full pathnames in diagnostics
 :: /DNAME   define a macro called NAME
+:: N.B.: VS2019 doesn't recognize '/experimental:c11atomics'
+:: N.B.: VS2017 doesn't recognize '/std:c17' nor '/experimental:c11atomics'
 SET CommonCompilerFlags=/nologo /Zc:wchar_t,forScope,inline /Gd /Gm- /GR- /EHa- /EHsc ^
-    /std:c17 /experimental:c11atomics /Oi /WX /W4 /volatile:iso /wd4127 /FC /D_UNICODE ^
+    /GS- /Gs9999999 /std:c17 /experimental:c11atomics /Oi /WX /W4 /volatile:iso /wd4127 /FC /D_UNICODE ^
     /DUNICODE /D_WIN32 /DWIN32
 
 ::SET CStandardLibraryIncludeFlags=/I"%VSINSTALLDIR%SDK\ScopeCppSDK\SDK\include\ucrt"
@@ -178,10 +183,13 @@ IF %release% EQU 1 (
     SET CommonCompilerFlagsFinal=%CommonCompilerFlagsDEBUG%
 )
 
+:: Can't use this to eliminate the C runtime when setjmp/longjmp are used
+SET LinkerNoDefault=/nodefaultlib kernel32.lib
 
-:: Common linker flags
+:: Common linker flags with one mebibyte of stack
 :: set CommonLinkerFlags=/incremental:no /opt:ref user32.lib gdi32.lib winmm.lib
-SET CommonLinkerFlags=/nologo /incremental:no /MANIFESTUAC /incremental:no /opt:ref
+SET CommonLinkerFlags=/nologo /incremental:no /MANIFESTUAC /incremental:no /opt:ref ^
+    /STACK:0x100000,0x100000
 SET CommonLinkerFlagsX64=/MACHINE:X64 %CommonLinkerFlags%
 SET CommonLinkerFlagsX86=/MACHINE:X86 %CommonLinkerFlags%
 

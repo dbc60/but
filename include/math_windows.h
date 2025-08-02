@@ -1,5 +1,5 @@
-#ifndef CRY_MATH_WINDOWS_H_
-#define CRY_MATH_WINDOWS_H_
+#ifndef BUT_MATH_WINDOWS_H_
+#define BUT_MATH_WINDOWS_H_
 /**
  * @file math_windows.h
  * @author Douglas Cuthbertson
@@ -9,7 +9,7 @@
  *
  * See LICENSE.txt for copyright and licensing information about this file.
  */
-#include <platform.h> // u16, u32, u64
+#include <abbreviated_types.h> // u16, u32, u64
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -40,10 +40,8 @@ extern "C" {
         (P2) = x;                         \
     } while (0)
 
-
-
 #if defined(__cplusplus)
 }
 #endif
 
-#endif // CRY_MATH_WINDOWS_H_
+#endif // BUT_MATH_WINDOWS_H_
