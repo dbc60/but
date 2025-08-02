@@ -24,9 +24,10 @@ SETLOCAL ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
 ::              Pro, and Community Edition in that order.
 ::  verbose:    Display details of steps during the build process.
 ::  trace:      Display the values of these options.
+::  timed:      Enable timing metrics collection with ctime.
 
 :: Remember to export these in the ENDLOCAL section below
-SET "options=build: debug: release: cleanall: clean: cleanplat: x64: x86: win32: test: vs2017: vs2019: vs2022: verbose: trace:"
+SET "options=build: debug: release: cleanall: clean: cleanplat: x64: x86: win32: test: vs2017: vs2019: vs2022: verbose: trace: timed:"
 :: Initialize flags to zero
 FOR %%O in (%options%) DO FOR /f "tokens=1,* delims=:" %%A in ("%%O") DO (
     if NOT "%%~B"=="" (
@@ -106,4 +107,5 @@ ENDLOCAL & (
     SET "vs2022=%vs2022%"
     SET "verbose=%verbose%"
     SET "trace=%trace%"
+    SET "timed=%timed%"
 )

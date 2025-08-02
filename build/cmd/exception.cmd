@@ -2,12 +2,6 @@
 SETLOCAL ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
 
 :: See LICENSE.txt for copyright and licensing information about this file.
-
-if NOT EXIST metrics (
-    md metrics
-)
-ctime.exe -begin metrics\exception.ctm
-
 SET PROJECT_NAME="Exceptions Module"
 SET PROJECT_NAME=%PROJECT_NAME:"=%
 TITLE %PROJECT_NAME%
@@ -16,6 +10,14 @@ SET DIR_CMD=%~dp0
 SET DIR_CMD=%DIR_CMD:~0,-1%
 SET DIR_LOCAL=%DIR_CMD%\local
 CALL %DIR_CMD%\options.cmd %*
+
+if %timed% EQU 1 (
+    if NOT EXIST metrics (
+        md metrics
+    )
+    ctime.exe -begin metrics\exception.ctm
+)
+
 CALL %DIR_CMD%\setup.cmd %*
 
 :: The build defaults to debug unless release is explicitly passed in
@@ -39,7 +41,9 @@ IF %build% EQU 1 (
     /IMPLIB:%DIR_OUT_LIB%\exception_butts.lib
     if errorlevel 1 (
         echo failed to build the %PROJECT_NAME% test suite
-        ctime.exe -end metrics\exception.ctm %errorlevel%
+        if %timed% EQU 1 (
+            ctime.exe -end metrics\exception.ctm %errorlevel%
+        )
         GOTO :EOF
     )
 
@@ -47,12 +51,16 @@ IF %build% EQU 1 (
     COPY %DIR_INCLUDE%\exception* %DIR_OUT_INC%\ 1>NUL
     if errorlevel 1 (
         echo failed to copy Exceptions header files to %DIR_OUT_INC%\
-        ctime.exe -end metrics\exception.ctm %errorlevel%
+        if %timed% EQU 1 (
+            ctime.exe -end metrics\exception.ctm %errorlevel%
+        )
         GOTO :EOF
     )
 )
 
-ctime.exe -end metrics\exception.ctm %errorlevel%
+if %timed% EQU 1 (
+    ctime.exe -end metrics\exception.ctm %errorlevel%
+)
 
 if %test% EQU 1 (
     IF NOT EXIST "%DIR_OUT_BIN%\but.exe" (

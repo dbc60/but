@@ -3,11 +3,6 @@ SETLOCAL ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
 
 :: See LICENSE.txt for copyright and licensing information about this file.
 
-if NOT EXIST metrics (
-    md metrics
-)
-ctime.exe -begin metrics\but.ctm
-
 SET PROJECT_NAME="Basic Unit Test"
 SET PROJECT_NAME=%PROJECT_NAME:"=%
 TITLE %PROJECT_NAME%
@@ -16,6 +11,14 @@ SET DIR_CMD=%~dp0
 SET DIR_CMD=%DIR_CMD:~0,-1%
 SET DIR_LOCAL=%DIR_CMD%\local
 CALL %DIR_CMD%\options.cmd %*
+
+if %timed% EQU 1 (
+    if NOT EXIST metrics (
+        md metrics
+    )
+    ctime.exe -begin metrics\but.ctm
+)
+
 CALL %DIR_CMD%\setup.cmd %*
 
 :: The build defaults to debug unless release is explicitly passed in
@@ -38,7 +41,9 @@ IF %build% EQU 1 (
         /OUT:%DIR_OUT_BIN%\but_butts.dll /IMPLIB:%DIR_OUT_LIB%\but_butts.lib
     if errorlevel 1 (
         echo failed to build the %PROJECT_NAME% driver test suite
-        ctime.exe -end metrics\but.ctm %errorlevel%
+        if %timed% EQU 1 (
+            ctime.exe -end metrics\but.ctm %errorlevel%
+        )
         GOTO :EOF
     )
 
@@ -54,7 +59,9 @@ IF %build% EQU 1 (
     /IMPLIB:%DIR_OUT_LIB%\but_test_data.lib
     if errorlevel 1 (
         echo failed to build the %PROJECT_NAME% driver's test-data DLL
-        ctime.exe -end metrics\but.ctm %errorlevel%
+        if %timed% EQU 1 (
+            ctime.exe -end metrics\but.ctm %errorlevel%
+        )
         GOTO :EOF
     )
 
@@ -68,12 +75,16 @@ IF %build% EQU 1 (
     %CommonLinkerFlagsFinal% /ENTRY:mainCRTStartup
     if errorlevel 1 (
         echo failed to build the %PROJECT_NAME% Program
-        ctime.exe -end metrics\but.ctm %errorlevel%
+        if %timed% EQU 1 (
+            ctime.exe -end metrics\but.ctm %errorlevel%
+        )
         GOTO :EOF
     )
 )
 
-ctime.exe -end metrics\but.ctm %errorlevel%
+if %timed% EQU 1 (
+    ctime.exe -end metrics\but.ctm %errorlevel%
+)
 
 if %test% EQU 1 (
     if %verbose% EQU 1 (
