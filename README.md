@@ -2,7 +2,7 @@
 
 ![Build Status](https://github.com/dbc60/but/workflows/Build%20BUT/badge.svg)
 ![License](https://img.shields.io/github/license/dbc60/but)
-![GitHub release](https://img.shields.io/github/v/release/dbc60/but)
+![GitHub Release](https://img.shields.io/github/v/release/dbc60/but?include_prereleases)
 ![GitHub issues](https://img.shields.io/github/issues/dbc60/but)
 
 Basic Unit Test (BUT) is a simple unit-test driver. The idea is collect related unit tests into a test suite that is compiled and linked into a shared library (DLL, .so, whatever). The test driver is a just a command-line tool that accepts paths to shared libraries. It will load them and run the tests within.
