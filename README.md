@@ -20,6 +20,7 @@ Those three build scripts accept the following commands:
 - `x86`: specifies a 32-bit build.
 - `win32`: specifies a 32-bit build.
 - `test`: build the current configuration and run all unit tests.
+- `timed`: run ctime for timed builds. The .ctm files are written to the metrics folder. N.B.: build ctime first.
 - `vs2017`: use Visual Studio 2017. The scripts will search for MS Build, Pro, and Community Edition in that order.
 - `vs2019`: use Visual Studio 2019. The scripts will search for MS Build, Pro, and Community Edition in that order.
 - `vs2022`: use Visual Studio 2022. The scripts will search for MS Build, Pro, and Community Edition in that order.
