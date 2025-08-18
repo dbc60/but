@@ -34,15 +34,13 @@ BUT_IS_VALID(but_is_valid) {
 
 // initialize the test context
 BUT_INITIALIZE(but_initialize) {
-    memset(bctx, 0, sizeof bctx);
-    memset(&bctx->env, 0, sizeof bctx->env);
+    memset(bctx, 0, sizeof *bctx);
     if (handler != NULL) {
         bctx->but_ctx.handler = handler;
         but_set_exception_context(&bctx->but_ctx);
     } else {
         bctx->but_ctx.handler = but_default_handler;
     }
-    bctx->but_ctx.stack   = NULL; // no exception stack yet
     bctx->env.initialized = true;
 }
 
