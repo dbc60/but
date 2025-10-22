@@ -145,11 +145,7 @@ int main(int argc, char **argv) {
         int test_suites = 0;
         logger_init();
         logger_set_level(LOG_INFO);
-        FILE   *logfile;
-        errno_t logfile_error = fopen_s(&logfile, "but.log", "a");
-        if (logfile_error == 0) {
-            logger_set_output(logfile);
-        }
+        logger_set_output_by_filename("but.log");
 
         BUT_TRY {
             // Assume each argument is a path to a test suite
@@ -201,9 +197,7 @@ int main(int argc, char **argv) {
             }
         }
         BUT_FINALLY {
-            if (logfile_error == 0) {
-                fclose(logfile);
-            }
+            logger_close();
         }
         BUT_END_TRY;
     } else {

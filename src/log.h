@@ -17,10 +17,6 @@
 #include <stdlib.h>
 #include <threads.h>
 
-#ifdef __STDC_LIB_EXT1__
-#error __STDC_LIB_EXT1__ defined
-#endif
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -97,7 +93,6 @@ LoggerContext *logger_set_context(LoggerContext *ctx);
 void logger_init_context(LoggerContext *ctx, char const *name,
                          char const *log_file_path);
 // Cleanup suite context
-void logger_destroy_context(LoggerContext *ctx);
 void logger_cleanup_context(LoggerContext *ctx);
 
 #if defined(__cplusplus)

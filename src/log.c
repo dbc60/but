@@ -55,7 +55,7 @@ static void initialize_g_logger_context_once(void) {
 }
 
 // Get current logger context
-LoggerContext *logger_get_context() {
+LoggerContext *logger_get_context(void) {
     call_once(&g_logger_context_init_flag, initialize_g_logger_context_once);
     return g_logger_context_;
 }
@@ -241,7 +241,7 @@ static void format_timestamp(char *buffer, size_t size) {
 // Core logging function
 void log_write(log_level_t level, char const *file, int line, char const *function,
                char const *test_name, char const *format, ...) {
-    LoggerContext *ctx    = logger_get_context(file, line);
+    LoggerContext *ctx    = logger_get_context();
     Logger        *logger = &ctx->logger;
     // Quick exit if logging disabled or level too low
     if (!logger->enabled || level > logger->min_level) {
@@ -283,43 +283,3 @@ void log_write(log_level_t level, char const *file, int line, char const *functi
 
     mtx_unlock(&logger->mutex);
 }
-
-// Example usage
-#ifdef EXAMPLE_USAGE
-int main() {
-    logger_init();
-    logger_set_level(LOG_DEBUG);
-
-    LOG_INFO("test_math", "Starting test suite");
-    LOG_DEBUG("test_add", "Test completed in 15ms");
-    LOG_ERROR("", "Framework initialization failed");
-
-    logger_cleanup();
-    return 0;
-}
-
-LoggerContext suite_ctx;
-
-void test_suite_setup(void) {
-    // Initialize a logger context for this test suite
-    logger_init_context(&suite_ctx, "MyTestSuite", "logs/my_test_suite.log");
-    if (suite_ctx->logger.enabled) {
-        // Switch to this context for the current thread
-        logger_set_context(suite_ctx);
-
-        // Configure logging level for this suite
-        logger_set_level(LOG_DEBUG);
-    }
-}
-
-void test_suite_cleanup(void) {
-    // Get current context and destroy it
-    LoggerContext *ctx = logger_get_context();
-
-    // Switch back to default context before destroying
-    logger_set_context(&g_default_logger_context_);
-
-    // Clean up the suite context
-    logger_cleanup_context(ctx);
-}
-#endif

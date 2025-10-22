@@ -104,7 +104,13 @@ void PrintCallingModule() {
 
 BUT_THROW_FN(but_throw) {
     assert(reason);
-    PrintCallingModule();
+
+    // Only call PrintCallingModule() when logging at TRACE level
+    LoggerContext *log_ctx = logger_get_context();
+    if (log_ctx->logger.min_level >= LOG_TRACE) {
+        PrintCallingModule();
+    }
+
     BUTExceptionContext *ctx = but_get_exception_context(__FILE__, __LINE__);
     if (ctx->stack == NULL) {
         // handle an unhandled exception
