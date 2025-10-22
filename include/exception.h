@@ -2,7 +2,7 @@
 #define BUT_EXCEPTION_H_
 
 /**
- * @file exceptions.h
+ * @file exception.h
  * @author Douglas Cuthbertson
  * @brief
  * @version 0.1

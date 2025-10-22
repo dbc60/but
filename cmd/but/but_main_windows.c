@@ -1,5 +1,5 @@
 /**
- * @file but.c
+ * @file but_main_windows.c
  * @author Douglas Cuthbertson
  * @brief The test driver for the Basic Unit Test (BUT) library.
  * @version 0.1
@@ -152,53 +152,53 @@ int main(int argc, char **argv) {
         }
 
         BUT_TRY {
-        // Assume each argument is a path to a test suite
-        for (i = 1; i < argc; i++) {
-            ts_path    = argv[i];
-            test_suite = LoadLibraryA(ts_path);
-            if (test_suite) {
-                but_set_exception_context_fn *set_context
-                    = (but_set_exception_context_fn *)
-                        GetProcAddress(test_suite, "but_set_exception_context");
-                if (set_context == NULL) {
-                    // ensure the pointer is not null
-                    set_context = but_set_exception_context;
-                    printf("Error: test suite %s doesn't export "
-                           "but_set_exception_context\n",
-                           argv[i]);
-                }
+            // Assume each argument is a path to a test suite
+            for (i = 1; i < argc; i++) {
+                ts_path    = argv[i];
+                test_suite = LoadLibraryA(ts_path);
+                if (test_suite) {
+                    but_set_exception_context_fn *set_context
+                        = (but_set_exception_context_fn *)
+                            GetProcAddress(test_suite, "but_set_exception_context");
+                    if (set_context == NULL) {
+                        // ensure the pointer is not null
+                        set_context = but_set_exception_context;
+                        printf("Error: test suite %s doesn't export "
+                               "but_set_exception_context\n",
+                               argv[i]);
+                    }
 
-                get_test_suite
+                    get_test_suite
                         = (but_get_test_suite)GetProcAddress(test_suite,
                                                              "get_test_suite");
-                if (get_test_suite) {
-                    but_initialize(&bctx, exception_handler);
-                    // register our exception handler with the test suite.
+                    if (get_test_suite) {
+                        but_initialize(&bctx, exception_handler);
+                        // register our exception handler with the test suite.
                         set_context(&bctx.exception_context, __FILE__, __LINE__);
-                    bts = get_test_suite();
+                        bts = get_test_suite();
                         printf("\n%s (%u): test suite %d of %d\n", bts->name, bts->count,
                                i, argc - 1);
-                    exercise_test_suite(&bctx, bts);
-                    test_suites++;
-                    if (i < argc) {
-                        printf("*******************************************\n");
+                        exercise_test_suite(&bctx, bts);
+                        test_suites++;
+                        if (i < argc) {
+                            printf("*******************************************\n");
+                        }
+                    } else {
+                        printf("Error: test suite %s doesn't export get_test_suite\n",
+                               argv[i]);
                     }
-                } else {
-                    printf("Error: test suite %s doesn't export get_test_suite\n",
-                           argv[i]);
-                }
 
-                FreeLibrary(test_suite);
-            } else {
-                printf("Failed to load test suite %s, error = %lu\n", ts_path,
-                       GetLastError());
+                    FreeLibrary(test_suite);
+                } else {
+                    printf("Failed to load test suite %s, error = %lu\n", ts_path,
+                           GetLastError());
+                }
             }
-        }
-        if (argc == 2) {
-            printf("\nExercised 1 test suite.\n");
-        } else {
-            printf("\nExercised %d of %d test suites.\n", test_suites, argc - 1);
-        }
+            if (argc == 2) {
+                printf("\nExercised 1 test suite.\n");
+            } else {
+                printf("\nExercised %d of %d test suites.\n", test_suites, argc - 1);
+            }
         }
         BUT_FINALLY {
             if (logfile_error == 0) {

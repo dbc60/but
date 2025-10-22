@@ -36,6 +36,8 @@ struct ResultContext {
  * @param bctx a test context.
  * @param status a test-result code.
  * @param reason a string describing the reason for the test failure.
+ * @param file the name of the file in which the test failure occurred.
+ * @param line the number of the line on which the test failure occurred.
  */
 void new_result(BUTContext *bctx, BUTResultCode status, char const *reason,
                 char const *file, int line);

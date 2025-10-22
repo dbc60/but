@@ -37,7 +37,7 @@ BUTExceptionReason but_invalid_address
  * @brief The default handler (through a pointer that can be updated to
  * point to an application-specific handler) when an exception is not caught.
  *
- *  void but_default_handler(but_handler_fn **handler, BUTExceptionReason reason, char
+ * void but_default_handler(but_handler_fn **handler, BUTExceptionReason reason, char
  * const *details, char const *file, int line)
  *
  * @param handler address of the handler in an BUTExceptionContext
