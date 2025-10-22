@@ -134,7 +134,7 @@ SET ANALYZE_FLAGS= /analyze /wd6246 /wd28301
 :: N.B.: VS2017 doesn't recognize '/std:c17' nor '/experimental:c11atomics'
 SET CommonCompilerFlags=/nologo /Zc:wchar_t,forScope,inline /Gd /Gm- /GR- /EHa- /EHsc ^
     /GS- /Gs9999999 /std:c17 /experimental:c11atomics /Oi /WX /W4 /volatile:iso /wd4127 /FC /D_UNICODE ^
-    /DUNICODE /D_WIN32 /DWIN32
+    /DUNICODE /D_WIN32 /DWIN32 /D__STDC_WANT_LIB_EXT1__=1
 
 ::SET CStandardLibraryIncludeFlags=/I"%VSINSTALLDIR%SDK\ScopeCppSDK\SDK\include\ucrt"
 ::SET CMicrosoftIncludeFlags=/I"%VSINSTALLDIR%SDK\ScopeCppSDK\SDK\include\um" ^

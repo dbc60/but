@@ -1,5 +1,5 @@
-#ifndef BUT_PROJECT_H_
-#define BUT_PROJECT_H_
+#ifndef BUT_MACROS_H_
+#define BUT_MACROS_H_
 
 /**
  * @file but_macros.h
@@ -33,7 +33,7 @@
 #else                                                        // !__cplusplus
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L // C23 or later
 #define THREAD_LOCAL thread_local
-#else                                 // !(__STDC_VERSION__ && __STDC_VERSION__ >= 202311L)
+#else // !(__STDC_VERSION__ && __STDC_VERSION__ >= 202311L)
 #if defined(_WIN32) || defined(WIN32) // _Thread_local and thread_local are undefined.
 #define THREAD_LOCAL __declspec(thread)
 #else // !(_WIN32 || WIN32)
@@ -101,7 +101,8 @@ extern "C" {
  * points. This is equivalent of Microsoft's CONTAINING_RECORD and Linux's
  * container_of macros.
  */
-#define BUT_CONTAINER(addr, type, member) ((type *)(((char *)(addr)) - offsetof(type, member)))
+#define BUT_CONTAINER(addr, type, member) \
+    ((type *)(((char *)(addr)) - offsetof(type, member)))
 
 /**
  * @brief Given a type and a member, BUT_MEMBER_SIZE calculates the size of the member in
@@ -133,4 +134,4 @@ extern "C" {
 }
 #endif
 
-#endif // BUT_PROJECT_H_
+#endif // BUT_MACROS_H_

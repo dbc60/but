@@ -7,29 +7,38 @@
  *
  * See LICENSE.txt for copyright and licensing information about this file.
  */
+#include <but_macros.h>       // THREAD_LOCAL,BUT_INTERNAL, BUT_GLOBAL, etc.
 #include <exception.h>        // but_throw
 #include <exception_types.h>  // BUTExceptionReason, BUTExceptionContext, BUT_THROWN
 #include <exception_assert.h> // assert
-#include <but_macros.h>       // THREAD_LOCAL,BUT_INTERNAL, BUT_GLOBAL, etc.
+#include "log.h"
 
-#include <stddef.h> // offsetof, NULL
-#include <stdio.h>  // fprintf
-#include <stdlib.h> // abort
-#include <string.h> // strncpy_s
+#include <stddef.h>  // offsetof, NULL
+#include <stdio.h>   // fprintf
+#include <stdlib.h>  // abort
+#include <string.h>  // strncpy_s
+#include <threads.h> // mtx_t, mtx_lock, mtx_unlock
 
-BUTExceptionReason but_expected_failure = "expected failure"; ///< test drivers catch this and do not report it as a failure
-BUTExceptionReason but_test_exception   = "test exception";   ///< used for tests that need to throw and catch an exception
-BUTExceptionReason but_not_implemented  = "not implemented";  ///< used during development
-BUTExceptionReason but_invalid_value    = "invalid value";    ///< used when an argument is invalid
-BUTExceptionReason but_internal_error   = "internal error";   ///< used when a component/library is in a bad state
-BUTExceptionReason but_invalid_address  = "invalid address";  ///< used when an address is not valid
+BUTExceptionReason but_expected_failure
+    = "expected failure"; ///< test drivers catch this and do not report it as a failure
+BUTExceptionReason but_unexpected_failure
+    = "unexpected failure"; ///< used when an address is not valid
+BUTExceptionReason but_test_exception
+    = "test exception"; ///< used for tests that need to throw and catch an exception
+BUTExceptionReason but_not_implemented = "not implemented"; ///< used during development
+BUTExceptionReason but_invalid_value
+    = "invalid value"; ///< used when an argument is invalid
+BUTExceptionReason but_internal_error
+    = "internal error"; ///< used when a component/library is in a bad state
+BUTExceptionReason but_invalid_address
+    = "invalid address"; ///< used when an address is not valid
 
 /**
  * @brief The default handler (through a pointer that can be updated to
  * point to an application-specific handler) when an exception is not caught.
  *
- *  void but_default_handler(but_handler_fn **handler, BUTExceptionReason reason, char const *details,
- *                       char const *file, int line)
+ *  void but_default_handler(but_handler_fn **handler, BUTExceptionReason reason, char
+ * const *details, char const *file, int line)
  *
  * @param handler address of the handler in an BUTExceptionContext
  * @param reason a brief reason for throwing the exception.
@@ -39,17 +48,20 @@ BUTExceptionReason but_invalid_address  = "invalid address";  ///< used when an 
  */
 BUT_HANDLER_FN(but_default_handler) {
     if (details == NULL) {
-        fprintf(stderr, "unexpected exception thrown: ctx(0x%p): reason(%s), @%s:%d\n", ctx, reason, file, line);
+        fprintf(stderr, "unexpected exception thrown: ctx(0x%p): reason(%s), @%s:%d\n",
+                ctx, reason, file, line);
     } else {
-        fprintf(stderr, "unexpected exception thrown: ctx(0x%p): reason(%s), details(%s), @%s:%d\n", ctx, reason, details, file,
-                line);
+        fprintf(
+            stderr,
+            "unexpected exception thrown: ctx(0x%p): reason(%s), details(%s), @%s:%d\n",
+            ctx, reason, details, file, line);
     }
     fflush(stderr);
     abort(); // terminate the program
 }
 
-// N.B.: g_default_context_ cannot be thread-local, because it must be constant to initialize g_context_, below.
-static BUTExceptionContext g_default_context_ = {.handler = but_default_handler, .stack = NULL};
+static THREAD_LOCAL BUTExceptionContext g_default_context_
+    = {.handler = but_default_handler, .stack = NULL};
 
 /*
  * N.B.: If a shared library (DLL, .so) spawns threads, each thread will have its own
@@ -57,14 +69,12 @@ static BUTExceptionContext g_default_context_ = {.handler = but_default_handler,
  * default, then they will each have to register it for themselves either directly, or by
  * calling but_set_exception_context(but_handler_fn **handler) defined below.
  *
- * FIXME: the default context is NOT thread local, so BUTExceptionContext probably needs a lock if the global context is shared
- * among multiple threads. Is a lock even sufficient given that each thread really needs its own exception stack and the global
- * context provides only one?
- *
- * The global context works only in single-threaded contexts. Maybe I should get rid of the global context and assert that
- * g_context_ is NOT NULL before each use. It would require a call to but_set_exception_context() for initialization.
+ * The global context works only in single-threaded contexts. Maybe I should get rid of
+ * the global context and assert that g_context_ is NOT NULL before each use. It would
+ * require a call to but_set_exception_context() for initialization.
  */
-static THREAD_LOCAL BUTExceptionContext *g_context_ = &g_default_context_;
+static THREAD_LOCAL BUTExceptionContext *g_context_;
+static once_flag                         g_context_init_flag_ = ONCE_FLAG_INIT;
 
 BUT_INIT_FN(but_init) {
     assert(ctx);
@@ -72,9 +82,30 @@ BUT_INIT_FN(but_init) {
     ctx->stack   = NULL;
 }
 
+void PrintCallingModule() {
+    HMODULE hModule;
+    char    modulePath[MAX_PATH];
+
+    logger_init();
+    // Get module handle for current function's address
+    GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                      (LPCTSTR)PrintCallingModule, &hModule);
+
+    GetModuleFileNameA(hModule, modulePath, MAX_PATH);
+    char const *file = logger_get_filename(modulePath);
+    // Check if it ends with .exe or .dll
+    char *extension = strrchr(file, '.');
+    if (extension && _stricmp(extension, ".exe") == 0) {
+        LOG_TRACE("exception", "Called from executable: %s", file);
+    } else if (extension && _stricmp(extension, ".dll") == 0) {
+        LOG_TRACE("exception", "Called from DLL: %s", file);
+    }
+}
+
 BUT_THROW_FN(but_throw) {
     assert(reason);
-    BUTExceptionContext *ctx = but_get_exception_context();
+    PrintCallingModule();
+    BUTExceptionContext *ctx = but_get_exception_context(__FILE__, __LINE__);
     if (ctx->stack == NULL) {
         // handle an unhandled exception
         (*ctx->handler)(ctx, reason, details, file, line);
@@ -90,12 +121,21 @@ BUT_THROW_FN(but_throw) {
     }
 }
 
+void initialize_g_context_once(void) {
+    if (g_context_ == 0) {
+        g_context_ = &g_default_context_;
+    }
+}
+
 /**
  * @brief retrieve the address of the per-thread exception handler.
  *
  * @return the address of the per-thread exception handler.
  */
 DLL_SPEC_EXPORT BUT_GET_EXCEPTION_CONTEXT(but_get_exception_context) {
+    call_once(&g_context_init_flag_, initialize_g_context_once);
+    LOG_TRACE_FILE_LINE("Exception", file, line, "context: 0x%p, %s[%d]", g_context_,
+                        file, line);
     return g_context_;
 }
 
@@ -107,9 +147,14 @@ DLL_SPEC_EXPORT BUT_GET_EXCEPTION_CONTEXT(but_get_exception_context) {
  */
 DLL_SPEC_EXPORT
 BUT_SET_EXCEPTION_CONTEXT(but_set_exception_context) {
+    LOG_DEBUG_FILE_LINE("Exception", file, line, "replace 0x%p wit 0x%p", g_context_,
+                        ctx);
     assert(ctx != NULL);
-    BUTExceptionContext *previous = g_context_;
-    g_context_                    = ctx;
+    BUTExceptionContext *previous;
+
+    call_once(&g_context_init_flag_, initialize_g_context_once);
+    previous   = g_context_;
+    g_context_ = ctx;
 
     return previous;
 }

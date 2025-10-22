@@ -109,10 +109,10 @@ typedef BUT_CLEANUP_FN(but_cleanup_fn);
         TEST();                                            \
     }                                                      \
     static BUTTestCase TEST##_case = {                     \
-        .name    = NAME,                                   \
-        .setup   = SETUP,                                  \
+        .name    = (NAME),                                 \
+        .setup   = (SETUP),                                \
         .test    = TEST##_wrapper,                         \
-        .cleanup = CLEANUP,                                \
+        .cleanup = (CLEANUP),                              \
     };                                                     \
     static void TEST(void)
 
@@ -144,21 +144,50 @@ typedef BUT_CLEANUP_FN(but_cleanup_fn);
     };                                                                \
     static void TEST(TYPE *t)
 
+/**
+ * @brief Sometimes setup and cleanup deal with side effects that the test doesn't use
+ * directly, so this macro defines a test that takes no arguments, while allowing setup
+ * and cleanup to accept a pointer to a struct with an embedded BUTTestCase.
+ *
+ * @param NAME The name of the test case
+ * @param TYPE a type (struct) with an embedded BUTTestCase
+ * @param TEST The test function to run.
+ * @param SETUP The setup function to run before the test.
+ * @param CLEANUP The cleanup function to run after the test.
+ */
+#define BUT_VOID_TEST_SETUP_CLEANUP(NAME, TYPE, TEST, SETUP, CLEANUP) \
+    static void TEST(void);                                           \
+    static void TEST##_wrapper(struct BUTTestCase *btc) {             \
+        BUT_UNUSED(btc);                                              \
+        TEST();                                                       \
+    }                                                                 \
+    TYPE TEST##_case = {                                              \
+        .btc.name    = NAME,                                          \
+        .btc.setup   = SETUP,                                         \
+        .btc.test    = TEST##_wrapper,                                \
+        .btc.cleanup = CLEANUP,                                       \
+    };                                                                \
+    static void TEST(void)
+
 // helper macro for defining test suites
 #define BUT_PTR(X) (&(X).btc)
 
 #define BUT_TEST_SUITE_NAME(SUITE) SUITE##_ts
 
-#define BUT_TEST_SUITE(NAME, SUITE) \
-    static BUTTestSuite SUITE##_ts  \
-        = {.name = NAME, .count = sizeof SUITE##_cases / sizeof SUITE##_cases[0], .test_cases = SUITE##_cases}
+#define BUT_TEST_SUITE(NAME, SUITE)                                      \
+    static BUTTestSuite SUITE##_ts                                       \
+        = {.name       = NAME,                                           \
+           .count      = sizeof SUITE##_cases / sizeof SUITE##_cases[0], \
+           .test_cases = SUITE##_cases}
 
 // Define suite with auto count
-#define BUT_GET_TEST_SUITE(NAME, SUITE)                                                                         \
-    static BUTTestSuite SUITE##_ts                                                                              \
-        = {.name = NAME, .count = sizeof SUITE##_cases / sizeof SUITE##_cases[0], .test_cases = SUITE##_cases}; \
-    DLL_SPEC_EXPORT BUTTestSuite *get_test_suite(void) {                                                        \
-        return &SUITE##_ts;                                                                                     \
+#define BUT_GET_TEST_SUITE(NAME, SUITE)                                  \
+    static BUTTestSuite SUITE##_ts                                       \
+        = {.name       = NAME,                                           \
+           .count      = sizeof SUITE##_cases / sizeof SUITE##_cases[0], \
+           .test_cases = SUITE##_cases};                                 \
+    DLL_SPEC_EXPORT BUTTestSuite *get_test_suite(void) {                 \
+        return &SUITE##_ts;                                              \
     }
 
 // a macro to define a common field for test-case structs to embed a BUTTestCase.

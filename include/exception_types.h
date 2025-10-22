@@ -2,7 +2,7 @@
 #define BUT_EXCEPTION_TYPES_H_
 
 /**
- * @file types.h
+ * @file exception_types.h
  * @author Douglas Cuthbertson
  * @brief Type definitions for an exception handling library.
  * @version 0.1
@@ -12,6 +12,11 @@
  */
 #include <abbreviated_types.h> // u32
 #include <setjmp.h>            // jmp_buf
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <Windows.h> // GetModuleHandle()
 
 #if defined(__cplusplus)
 extern "C" {
@@ -28,7 +33,8 @@ extern "C" {
 typedef enum BUTExceptionState {
     BUT_ENTERED, // try block entered; setjmp has returned zero
     BUT_THROWN,  // exception thrown
-    BUT_HANDLED, // exception handled/caught or finally block entered w/o throwing an exception
+    BUT_HANDLED, // exception handled/caught or finally block entered w/o throwing an
+                 // exception
 } BUTExceptionState;
 
 /**
@@ -38,16 +44,20 @@ typedef enum BUTExceptionState {
 typedef char const *BUTExceptionReason;
 
 typedef struct BUTExceptionEnvironment {
-    jmp_buf jmp;                              ///< the jump buffer for setjmp/longjmp. Note that the offset of jmp_buf
-                                              ///< must be 16-byte aligned on some systems.
-    struct BUTExceptionEnvironment *next;     ///< a pointer to a parent context from an enclosing BUT_TRY block.
-    BUTExceptionReason              reason;   ///< a constant string describing the reason for the exception.
-    char const                     *details;  ///< extra details about the exception
-    char const                     *try_file; ///< the file where the last setjmp was set.
-    char const                     *file;     ///< the file where the exception was thrown.
-    u32                             try_line; ///< the line where the last setjmp was set.
-    u32                             line;     ///< the line where the exception was thrown.
-    BUTExceptionState volatile state;         ///< a try block is entered, thrown, handled, or finalized.
+    jmp_buf jmp; ///< the jump buffer for setjmp/longjmp. Note that the offset of jmp_buf
+                 ///< must be 16-byte aligned on some systems.
+    struct BUTExceptionEnvironment
+        *next; ///< a pointer to a parent context from an enclosing BUT_TRY block.
+    BUTExceptionReason
+                reason;   ///< a constant string describing the reason for the exception.
+    char const *details;  ///< extra details about the exception
+    char const *try_file; ///< the file where the last setjmp was set.
+    char const *file;     ///< the file where the exception was thrown.
+    u32         try_line; ///< the line where the last setjmp was set.
+    u32         line;     ///< the line where the exception was thrown.
+    BUTExceptionState volatile state; ///< a try block is entered, thrown, handled, or
+                                      ///< finalized.
+    HMODULE h;                        ///< a handle to the current module
 } BUTExceptionEnvironment;
 
 /*
@@ -70,16 +80,17 @@ typedef struct BUTExceptionContext BUTExceptionContext;
  * was thrown.
  * @param line the line number of the thrown exception.
  */
-#define BUT_HANDLER_FN(name) \
-    void name(BUTExceptionContext *ctx, BUTExceptionReason reason, char const *details, char const *file, int line)
+#define BUT_HANDLER_FN(name)                                                            \
+    void name(BUTExceptionContext *ctx, BUTExceptionReason reason, char const *details, \
+              char const *file, int line)
 typedef BUT_HANDLER_FN(but_handler_fn);
 typedef but_handler_fn *but_handler;
 
 /**
  * @brief The necessary data captured in BUT_TRY so exceptions can be thrown, and caught.
  *
- * Each BUT_TRY block creates a local BUTExceptionEnvironment, gets the address of the global
- * handler, and pushes the environment's address on to the handler's stack. If the
+ * Each BUT_TRY block creates a local BUTExceptionEnvironment, gets the address of the
+ * global handler, and pushes the environment's address on to the handler's stack. If the
  * handler runs out of stack, then there are no more enclosing try/catch blocks with an
  * BUTExceptionEnvironment. That triggers but_throw() to call the handler function.
  */
@@ -88,10 +99,12 @@ struct BUTExceptionContext {
     BUTExceptionEnvironment *stack;   ///< top of a stack of exception environments
 };
 
-#define BUT_GET_EXCEPTION_CONTEXT(name) BUTExceptionContext *name(void)
+#define BUT_GET_EXCEPTION_CONTEXT(name) \
+    BUTExceptionContext *name(char const *file, int line)
 typedef BUT_GET_EXCEPTION_CONTEXT(but_get_exception_context_fn);
 
-#define BUT_SET_EXCEPTION_CONTEXT(name) BUTExceptionContext *name(BUTExceptionContext *ctx)
+#define BUT_SET_EXCEPTION_CONTEXT(name) \
+    BUTExceptionContext *name(BUTExceptionContext *ctx, char const *file, int line)
 typedef BUT_SET_EXCEPTION_CONTEXT(but_set_exception_context_fn);
 
 #if defined(__cplusplus)

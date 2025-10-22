@@ -70,7 +70,7 @@ IF %build% EQU 1 (
         ECHO Build the %PROJECT_NAME% Driver
     )
     cl %CommonCompilerFlagsFinal% /I%DIR_INCLUDE% ^
-    %DIR_REPO%\cmd\but\driver_windows.c  /Fo:%DIR_OUT_OBJ%\ ^
+    %DIR_REPO%\cmd\but\but_main_windows.c  /Fo:%DIR_OUT_OBJ%\ ^
     /Fd:%DIR_OUT_BIN%\but.pdb /Fe:%DIR_OUT_BIN%\but.exe /link ^
     %CommonLinkerFlagsFinal% /ENTRY:mainCRTStartup
     if errorlevel 1 (

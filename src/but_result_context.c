@@ -40,14 +40,16 @@ static void grow_capacity(BUTContext *bctx) {
     new_results = realloc(bctx->env.results, new_capacity * sizeof(ResultContext));
     if (new_results) {
         // Initialize new memory block
-        memset(&new_results[bctx->env.results_capacity], 0, count * sizeof(ResultContext));
+        memset(&new_results[bctx->env.results_capacity], 0,
+               count * sizeof(ResultContext));
         bctx->env.results_capacity = new_capacity;
         bctx->env.results          = new_results;
     }
 }
 
 // create a new result context to capture the reason for a test failure.
-void new_result(BUTContext *bctx, BUTResultCode status, char const *reason) {
+void new_result(BUTContext *bctx, BUTResultCode status, char const *reason,
+                char const *file, int line) {
     if (bctx->env.results_count == bctx->env.results_capacity) {
         grow_capacity(bctx);
     }
@@ -56,6 +58,8 @@ void new_result(BUTContext *bctx, BUTResultCode status, char const *reason) {
         bctx->env.results[bctx->env.results_count].index  = bctx->env.index;
         bctx->env.results[bctx->env.results_count].status = status;
         bctx->env.results[bctx->env.results_count].reason = reason;
+        bctx->env.results[bctx->env.results_count].file   = file;
+        bctx->env.results[bctx->env.results_count].line   = line;
         bctx->env.results_count++;
     }
 }

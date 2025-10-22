@@ -10,6 +10,7 @@
 #include "but_driver.h"
 #include "but_result_context.h" // new_result
 #include "intrinsics_win32.h"
+#include "log.h" // LOG_ERROR
 
 #include <exception_types.h> // BUTExceptionReason
 
@@ -32,14 +33,36 @@ BUT_IS_VALID(but_is_valid) {
     return valid;
 }
 
+BUT_LOG_ERROR(but_log_error) {
+    if (details != NULL) {
+        if (file != NULL) {
+            LOG_ERROR("Test Failure",
+                      "%s: Unexpected Exception: %s. Details: %s, @%s: %d", test_case,
+                      reason, details, file, line);
+        } else {
+            LOG_ERROR("Test Failure", "%s: Unexpected Exception: %s. Details: %s",
+                      test_case, reason, details);
+        }
+    } else {
+        if (file != NULL) {
+            LOG_ERROR("Test Failure",
+                      "%s: Unexpected Exception: %s (no details). @%s: %d", test_case,
+                      reason, file, line);
+        } else {
+            LOG_ERROR("Test Failure", "%s: Unexpected Exception: %s (no details).",
+                      test_case, reason);
+        }
+    }
+}
+
 // initialize the test context
 BUT_INITIALIZE(but_initialize) {
     memset(bctx, 0, sizeof *bctx);
     if (handler != NULL) {
-        bctx->but_ctx.handler = handler;
-        but_set_exception_context(&bctx->but_ctx);
+        bctx->exception_context.handler = handler;
+        but_set_exception_context(&bctx->exception_context, __FILE__, __LINE__);
     } else {
-        bctx->but_ctx.handler = but_default_handler;
+        bctx->exception_context.handler = but_default_handler;
     }
     bctx->env.initialized = true;
 }
@@ -96,9 +119,10 @@ BUT_DRIVER(but_driver) {
 
     if (tc == NULL) {
         result = BUT_FAILED;
-        new_result(bctx, BUT_FAILED, invalid_test_case);
+        new_result(bctx, BUT_FAILED, invalid_test_case, __FILE__, __LINE__);
         bctx->env.test_failures++;
-        BUT_THROW_DETAILS(invalid_test_case, "test case %u does not exist", bctx->env.index);
+        BUT_THROW_DETAILS(invalid_test_case, "test case %u does not exist",
+                          bctx->env.index);
     }
 
     if (tc->setup != NULL) {
@@ -108,7 +132,7 @@ BUT_DRIVER(but_driver) {
         BUT_CATCH_ALL {
             if (BUT_UNEXPECTED_EXCEPTION(BUT_REASON)) {
                 result = BUT_FAILED_SETUP;
-                new_result(bctx, BUT_FAILED_SETUP, BUT_REASON);
+                new_result(bctx, BUT_FAILED_SETUP, BUT_REASON, BUT_FILE, BUT_LINE);
                 bctx->env.setup_failures++;
             }
             bctx->env.run_count++;
@@ -124,11 +148,14 @@ BUT_DRIVER(but_driver) {
             }
             BUT_CATCH_ALL {
                 if (BUT_UNEXPECTED_EXCEPTION(BUT_REASON)) {
-                    new_result(bctx, BUT_FAILED, BUT_REASON);
+                    BUTExceptionReason reason  = BUT_REASON;
+                    char const        *details = BUT_DETAILS;
+                    char const        *file    = BUT_FILE;
+                    int                line    = BUT_LINE;
+                    new_result(bctx, BUT_FAILED, reason, file, line);
                     bctx->env.test_failures++;
+                    but_log_error(tc->name, reason, details, file, line);
                 }
-                bctx->env.run_count++;
-                BUT_RETHROW;
             }
             BUT_END_TRY;
         }
@@ -141,7 +168,7 @@ BUT_DRIVER(but_driver) {
         }
         BUT_CATCH_ALL {
             if (BUT_UNEXPECTED_EXCEPTION(BUT_REASON)) {
-                new_result(bctx, BUT_FAILED_CLEANUP, BUT_REASON);
+                new_result(bctx, BUT_FAILED_CLEANUP, BUT_REASON, BUT_FILE, BUT_LINE);
                 bctx->env.cleanup_failures++;
             }
             BUT_RETHROW;
@@ -157,7 +184,9 @@ BUT_GET_RUN_COUNT(but_get_run_count) {
 
 // Get the number of test cases that passed
 BUT_GET_PASS_COUNT(but_get_pass_count) {
-    return bctx->env.test_case_count - (bctx->env.test_failures + bctx->env.setup_failures + bctx->env.cleanup_failures);
+    return bctx->env.test_case_count
+           - (bctx->env.test_failures + bctx->env.setup_failures
+              + bctx->env.cleanup_failures);
 }
 
 // Get the number of test cases that failed

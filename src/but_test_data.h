@@ -1,5 +1,5 @@
-#ifndef TEST_DATA_H_
-#define TEST_DATA_H_
+#ifndef BUT_TEST_DATA_H_
+#define BUT_TEST_DATA_H_
 
 /**
  * @file but_test_data.h
@@ -52,4 +52,4 @@ DLL_SPEC BUT_GET_SETUP_FAILURE_COUNT(test_data_get_setup_fail_count);
 DLL_SPEC BUT_GET_RESULTS_COUNT(test_data_get_results_count);
 DLL_SPEC BUT_GET_RESULT(test_data_get_result);
 
-#endif // TEST_DATA_H_
+#endif // BUT_TEST_DATA_H_

@@ -1,5 +1,5 @@
-#ifndef BUT_PLATFORM_H_
-#define BUT_PLATFORM_H_
+#ifndef BUT_ABBREVIATED_TYPES_H_
+#define BUT_ABBREVIATED_TYPES_H_
 
 /**
  * @file abbreviated_types.h
@@ -80,4 +80,4 @@ void get_memory_info(u32 *granularity, u32 *page_size);
 }
 #endif
 
-#endif // BUT_PLATFORM_H_
+#endif // BUT_ABBREVIATED_TYPES_H_

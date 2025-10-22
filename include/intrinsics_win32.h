@@ -2,7 +2,7 @@
 #define BUT_INTRINSICS_WINDOWS_H_
 
 /**
- * @file intrinsics.h
+ * @file intrinsics_win32.h
  * @author Douglas Cuthbertson
  * @brief declare intrinsic functions w/o linking to the C runtime
  * @version 0.1

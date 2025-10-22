@@ -2,7 +2,7 @@
 #define BUT_EXCEPTION_ASSERT_H_
 
 /**
- * @file assert.h
+ * @file exception_assert.h
  * @author Douglas Cuthbertson
  * @brief Assertions based on an exception handling library.
  * @version 0.1
@@ -10,6 +10,7 @@
  *
  * See LICENSE.txt for copyright and licensing information about this file.
  */
+#include <exception_types.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -19,6 +20,8 @@ extern "C" {
 #ifdef assert
 #undef assert
 #endif
+
+extern BUTExceptionReason but_assertion_failure;
 
 #if !defined(_DEBUG)
 #include <but_macros.h> // BUT_UNUSED
@@ -40,9 +43,6 @@ extern "C" {
         BUT_UNUSED(LINE);                   \
     } while (0)
 #else
-#if defined(__cplusplus)
-extern "C" {
-#endif
 
 /**
  * @brief Throw an exception when an assertion fails. Include the file name and
@@ -81,10 +81,6 @@ void but_throw_assertion(char const *reason, char const *file_name, int line);
  *
  */
 #define assert(e) BUT_ASSERT(e)
-
-#if defined(__cplusplus)
-}
-#endif
 #endif // _DEBUG
 
 #if defined(__cplusplus)

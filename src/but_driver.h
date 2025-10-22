@@ -45,6 +45,12 @@ extern "C" {
 typedef BUT_IS_VALID(but_is_valid_fn);
 BUT_IS_VALID(but_is_valid);
 
+#define BUT_LOG_ERROR(name)                                                          \
+    void name(char const *test_case, BUTExceptionReason reason, char const *details, \
+              char const *file, int line)
+typedef BUT_LOG_ERROR(but_log_error_fn);
+BUT_LOG_ERROR(but_log_error);
+
 /**
  * @brief initialize a test context.
  *

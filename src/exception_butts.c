@@ -1,5 +1,5 @@
 /**
- * @file butts.c
+ * @file exception_butts.c
  * @author Douglas Cuthbertson
  * @brief A test suite for the exception handling library.
  * @version 0.1
@@ -9,6 +9,7 @@
  */
 #include "exception.c"
 #include "exception_assert.c"
+#include "log.c"
 
 #include <but.h>              // BUTTestCase, BUTTestSuite
 #include <exception_assert.h> // assert
@@ -57,7 +58,9 @@ BUT_TEST("Throw Details", test_throw_details) {
 
 BUT_TEST("Throw Details File Line", test_throw_details_file_line) {
     BUT_TRY {
-        BUT_THROW_DETAILS_FILE_LINE(test_exception, "test throw details with file and line number", __FILE__, __LINE__);
+        BUT_THROW_DETAILS_FILE_LINE(test_exception,
+                                    "test throw details with file and line number",
+                                    __FILE__, __LINE__);
     }
     BUT_CATCH(test_exception) {
         ; // Success
@@ -130,10 +133,12 @@ BUT_TEST_FN(test_failure) {
 
 BUT_CASE("Expected Test Failure", test_failure, NULL, NULL);
 BUT_CASE_NAME("Expected Test Setup Failure", setup_failure, NULL, test_failure, NULL);
-BUT_CASE_NAME("Expected Test Cleanup Failure", cleanup_failure, NULL, NULL, test_failure);
+BUT_CASE_NAME("Expected Test Cleanup Failure", cleanup_failure, NULL, NULL,
+              test_failure);
 
 /**
- * @brief Throw but_internal_error from multiple nested contexts to ensure it is caught correctly.
+ * @brief Throw but_internal_error from multiple nested contexts to ensure it is caught
+ * correctly.
  */
 BUT_TEST("Deep Nesting", deep_nesting) {
     BUT_TRY {

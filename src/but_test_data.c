@@ -11,9 +11,10 @@
 #include "but_result_context.c"
 #include "exception_assert.c"
 #include "exception.c"
+#include "log.c"
 
 DLL_SPEC_EXPORT BUT_HANDLER_FN(test_data_handler) {
-    BUTContext *bctx = BUT_CONTAINER(ctx, BUTContext, but_ctx);
+    BUTContext *bctx = BUT_CONTAINER(ctx, BUTContext, exception_context);
 
     if (BUT_UNEXPECTED_EXCEPTION(reason)) {
         BUTTestSuite *bts = bctx->env.bts;
@@ -25,9 +26,11 @@ DLL_SPEC_EXPORT BUT_HANDLER_FN(test_data_handler) {
         }
 
         if (details != NULL) {
-            printf("  test_data_handler: Unexpected Exception. %s: %s, %s, @%s:%d\n", name, reason, details, file, line);
+            printf("  test_data_handler: Unexpected Exception. %s: %s, %s, @%s:%d\n",
+                   name, reason, details, file, line);
         } else {
-            printf("  test_data_handler: Unexpected Exception. %s: %s, @%s:%d\n", name, reason, file, line);
+            printf("  test_data_handler: Unexpected Exception. %s: %s, @%s:%d\n", name,
+                   reason, file, line);
         }
     }
 }

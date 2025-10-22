@@ -22,7 +22,13 @@ extern "C" {
 #endif
 
 // Helper macro to format assertion failure messages
-#define BUT_ASSERT_IMPL(msg, ...) BUT_THROW_DETAILS(but_internal_error, msg, ##__VA_ARGS__)
+#define BUT_ASSERT_IMPL(msg, ...) \
+    BUT_THROW_DETAILS(but_unexpected_failure, msg, ##__VA_ARGS__)
+
+// Helper macro that accepts a reason string so failed assertions can have a reason other
+// than but_unexpected_failure
+#define BUT_ASSERT_REASON_IMPL(REASON, msg, ...) \
+    BUT_THROW_DETAILS(REASON, msg, ##__VA_ARGS__)
 
 // Unconditional failure
 #define BUT_FAIL(msg, ...) BUT_ASSERT_IMPL("Failure: " msg, ##__VA_ARGS__)
@@ -43,166 +49,251 @@ extern "C" {
     } while (0)
 
 // Integer comparisons
-#define BUT_ASSERT_ZERO(value)                                      \
-    do {                                                            \
-        if ((value) != 0) {                                         \
-            BUT_ASSERT_IMPL("Expected: zero. Actual: %d", (value)); \
-        }                                                           \
+#define BUT_ASSERT_ZERO(value)                                                      \
+    do {                                                                            \
+        if ((value) != 0) {                                                         \
+            BUT_ASSERT_REASON_IMPL(but_invalid_value, "Expected: zero. Actual: %d", \
+                                   (value));                                        \
+        }                                                                           \
     } while (0)
 
-#define BUT_ASSERT_NON_ZERO(value)                                      \
-    do {                                                                \
-        if ((value) == 0) {                                             \
-            BUT_ASSERT_IMPL("Expected: non-zero. Actual: %d", (value)); \
-        }                                                               \
+#define BUT_ASSERT_NON_ZERO(value)                                                      \
+    do {                                                                                \
+        if ((value) == 0) {                                                             \
+            BUT_ASSERT_REASON_IMPL(but_invalid_value, "Expected: non-zero. Actual: %d", \
+                                   (value));                                            \
+        }                                                                               \
     } while (0)
 
 // Base macro used to implement all typed binary assertions (==, !=, <, etc.)
-#define BUT_ASSERT_BINOP_TYPED(lhs, rhs, op, op_str, fmt)                                                                  \
-    do {                                                                                                                   \
-        if (!((lhs)op(rhs))) {                                                                                             \
-            BUT_ASSERT_IMPL("Expected: " fmt " " op_str " " fmt ". Actual: " fmt " and " fmt, (lhs), (rhs), (lhs), (rhs)); \
-        }                                                                                                                  \
+#define BUT_ASSERT_BINOP_TYPED(lhs, rhs, op, op_str, fmt)                        \
+    do {                                                                         \
+        if (!((lhs)op(rhs))) {                                                   \
+            BUT_ASSERT_IMPL("Expected: " fmt " " op_str " " fmt ". Actual: " fmt \
+                            " and " fmt,                                         \
+                            (lhs), (rhs), (lhs), (rhs));                         \
+        }                                                                        \
     } while (0)
 
-#define BUT_ASSERT_EQ_INT(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, ==, "==", "%d")
-#define BUT_ASSERT_NEQ_INT(expected, actual) BUT_ASSERT_BINOP_TYPED(expected, actual, !=, "!=", "%d")
-#define BUT_ASSERT_LT_INT(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <, "<", "%d")
-#define BUT_ASSERT_LE_INT(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <=, "<=", "%d")
-#define BUT_ASSERT_GT_INT(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >, ">", "%d")
-#define BUT_ASSERT_GE_INT(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >=, ">=", "%d")
+#define BUT_ASSERT_EQ_INT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, ==, "==", "%d")
+#define BUT_ASSERT_NEQ_INT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, !=, "!=", "%d")
+#define BUT_ASSERT_LT_INT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <, "<", "%d")
+#define BUT_ASSERT_LE_INT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <=, "<=", "%d")
+#define BUT_ASSERT_GT_INT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >, ">", "%d")
+#define BUT_ASSERT_GE_INT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >=, ">=", "%d")
 
-#define BUT_ASSERT_EQ_UINT(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, ==, "==", "%u")
-#define BUT_ASSERT_NEQ_UINT(expected, actual) BUT_ASSERT_BINOP_TYPED(expected, actual, !=, "!=", "%u")
-#define BUT_ASSERT_LT_UINT(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <, "<", "%u")
-#define BUT_ASSERT_LE_UINT(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <=, "<=", "%u")
-#define BUT_ASSERT_GT_UINT(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >, ">", "%u")
-#define BUT_ASSERT_GE_UINT(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >=, ">=", "%u")
+#define BUT_ASSERT_EQ_UINT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, ==, "==", "%u")
+#define BUT_ASSERT_NEQ_UINT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, !=, "!=", "%u")
+#define BUT_ASSERT_LT_UINT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <, "<", "%u")
+#define BUT_ASSERT_LE_UINT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <=, "<=", "%u")
+#define BUT_ASSERT_GT_UINT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >, ">", "%u")
+#define BUT_ASSERT_GE_UINT(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >=, ">=", "%u")
 
-#define BUT_ASSERT_EQ_LONG(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, ==, "==", "%ld")
-#define BUT_ASSERT_NEQ_LONG(expected, actual) BUT_ASSERT_BINOP_TYPED(expected, actual, !=, "!=", "%ld")
-#define BUT_ASSERT_LT_LONG(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <, "<", "%ld")
-#define BUT_ASSERT_LE_LONG(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <=, "<=", "%ld")
-#define BUT_ASSERT_GT_LONG(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >, ">", "%ld")
-#define BUT_ASSERT_GE_LONG(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >=, ">=", "%ld")
+#define BUT_ASSERT_EQ_LONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, ==, "==", "%ld")
+#define BUT_ASSERT_NEQ_LONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, !=, "!=", "%ld")
+#define BUT_ASSERT_LT_LONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <, "<", "%ld")
+#define BUT_ASSERT_LE_LONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <=, "<=", "%ld")
+#define BUT_ASSERT_GT_LONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >, ">", "%ld")
+#define BUT_ASSERT_GE_LONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >=, ">=", "%ld")
 
-#define BUT_ASSERT_EQ_ULONG(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, ==, "==", "%lu")
-#define BUT_ASSERT_NEQ_ULONG(expected, actual) BUT_ASSERT_BINOP_TYPED(expected, actual, !=, "!=", "%lu")
-#define BUT_ASSERT_LT_ULONG(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <, "<", "%lu")
-#define BUT_ASSERT_LE_ULONG(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <=, "<=", "%lu")
-#define BUT_ASSERT_GT_ULONG(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >, ">", "%lu")
-#define BUT_ASSERT_GE_ULONG(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >=, ">=", "%lu")
+#define BUT_ASSERT_EQ_ULONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, ==, "==", "%lu")
+#define BUT_ASSERT_NEQ_ULONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, !=, "!=", "%lu")
+#define BUT_ASSERT_LT_ULONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <, "<", "%lu")
+#define BUT_ASSERT_LE_ULONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <=, "<=", "%lu")
+#define BUT_ASSERT_GT_ULONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >, ">", "%lu")
+#define BUT_ASSERT_GE_ULONG(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >=, ">=", "%lu")
 
-#define BUT_ASSERT_EQ_SIZE_T(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, ==, "==", "%zu")
-#define BUT_ASSERT_NEQ_SIZE_T(expected, actual) BUT_ASSERT_BINOP_TYPED(expected, actual, !=, "!=", "%zu")
-#define BUT_ASSERT_LT_SIZE_T(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <, "<", "%zu")
-#define BUT_ASSERT_LE_SIZE_T(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <=, "<=", "%zu")
-#define BUT_ASSERT_GT_SIZE_T(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >, ">", "%zu")
-#define BUT_ASSERT_GE_SIZE_T(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >=, ">=", "%zu")
+#define BUT_ASSERT_EQ_SIZE_T(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, ==, "==", "%zu")
+#define BUT_ASSERT_NEQ_SIZE_T(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, !=, "!=", "%zu")
+#define BUT_ASSERT_LT_SIZE_T(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <, "<", "%zu")
+#define BUT_ASSERT_LE_SIZE_T(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <=, "<=", "%zu")
+#define BUT_ASSERT_GT_SIZE_T(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >, ">", "%zu")
+#define BUT_ASSERT_GE_SIZE_T(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >=, ">=", "%zu")
 
-#define BUT_ASSERT_EQ_PTRDIFF(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, ==, "==", "%td")
-#define BUT_ASSERT_NEQ_PTRDIFF(expected, actual) BUT_ASSERT_BINOP_TYPED(expected, actual, !=, "!=", "%td")
-#define BUT_ASSERT_LT_PTRDIFF(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <, "<", "%td")
-#define BUT_ASSERT_LE_PTRDIFF(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <=, "<=", "%td")
-#define BUT_ASSERT_GT_PTRDIFF(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >, ">", "%td")
-#define BUT_ASSERT_GE_PTRDIFF(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >=, ">=", "%td")
+#define BUT_ASSERT_EQ_PTRDIFF(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, ==, "==", "%td")
+#define BUT_ASSERT_NEQ_PTRDIFF(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, !=, "!=", "%td")
+#define BUT_ASSERT_LT_PTRDIFF(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <, "<", "%td")
+#define BUT_ASSERT_LE_PTRDIFF(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <=, "<=", "%td")
+#define BUT_ASSERT_GT_PTRDIFF(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >, ">", "%td")
+#define BUT_ASSERT_GE_PTRDIFF(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >=, ">=", "%td")
 
-#define BUT_ASSERT_EQ_UINT32(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, ==, "==", "%" PRIu32)
-#define BUT_ASSERT_NEQ_UINT32(expected, actual) BUT_ASSERT_BINOP_TYPED(expected, actual, !=, "!=", "%" PRIu32)
-#define BUT_ASSERT_LT_UINT32(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <, "<", "%" PRIu32)
-#define BUT_ASSERT_LE_UINT32(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <=, "<=", "%" PRIu32)
-#define BUT_ASSERT_GT_UINT32(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >, ">", "%" PRIu32)
-#define BUT_ASSERT_GE_UINT32(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >=, ">=", "%" PRIu32)
+#define BUT_ASSERT_EQ_UINT32(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, ==, "==", "%" PRIu32)
+#define BUT_ASSERT_NEQ_UINT32(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, !=, "!=", "%" PRIu32)
+#define BUT_ASSERT_LT_UINT32(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <, "<", "%" PRIu32)
+#define BUT_ASSERT_LE_UINT32(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <=, "<=", "%" PRIu32)
+#define BUT_ASSERT_GT_UINT32(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >, ">", "%" PRIu32)
+#define BUT_ASSERT_GE_UINT32(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >=, ">=", "%" PRIu32)
 
-#define BUT_ASSERT_EQ_INT64(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, ==, "==", "%" PRId64)
-#define BUT_ASSERT_NEQ_INT64(expected, actual) BUT_ASSERT_BINOP_TYPED(expected, actual, !=, "!=", "%" PRId64)
-#define BUT_ASSERT_LT_INT64(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <, "<", "%" PRId64)
-#define BUT_ASSERT_LE_INT64(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <=, "<=", "%" PRId64)
-#define BUT_ASSERT_GT_INT64(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >, ">", "%" PRId64)
-#define BUT_ASSERT_GE_INT64(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >=, ">=", "%" PRId64)
+#define BUT_ASSERT_EQ_INT64(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, ==, "==", "%" PRId64)
+#define BUT_ASSERT_NEQ_INT64(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, !=, "!=", "%" PRId64)
+#define BUT_ASSERT_LT_INT64(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <, "<", "%" PRId64)
+#define BUT_ASSERT_LE_INT64(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <=, "<=", "%" PRId64)
+#define BUT_ASSERT_GT_INT64(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >, ">", "%" PRId64)
+#define BUT_ASSERT_GE_INT64(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >=, ">=", "%" PRId64)
 
-#define BUT_ASSERT_EQ_UINTPTR(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, ==, "==", "%" PRIuPTR)
-#define BUT_ASSERT_NEQ_UINTPTR(expected, actual) BUT_ASSERT_BINOP_TYPED(expected, actual, !=, "!=", "%" PRIuPTR)
-#define BUT_ASSERT_LT_UINTPTR(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <, "<", "%" PRIuPTR)
-#define BUT_ASSERT_LE_UINTPTR(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, <=, "<=", "%" PRIuPTR)
-#define BUT_ASSERT_GT_UINTPTR(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >, ">", "%" PRIuPTR)
-#define BUT_ASSERT_GE_UINTPTR(expected, actual)  BUT_ASSERT_BINOP_TYPED(expected, actual, >=, ">=", "%" PRIuPTR)
+#define BUT_ASSERT_EQ_UINTPTR(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, ==, "==", "%" PRIuPTR)
+#define BUT_ASSERT_NEQ_UINTPTR(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, !=, "!=", "%" PRIuPTR)
+#define BUT_ASSERT_LT_UINTPTR(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <, "<", "%" PRIuPTR)
+#define BUT_ASSERT_LE_UINTPTR(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, <=, "<=", "%" PRIuPTR)
+#define BUT_ASSERT_GT_UINTPTR(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >, ">", "%" PRIuPTR)
+#define BUT_ASSERT_GE_UINTPTR(EXPECTED, ACTUAL) \
+    BUT_ASSERT_BINOP_TYPED(EXPECTED, ACTUAL, >=, ">=", "%" PRIuPTR)
 
 // Pointer checks
-#define BUT_ASSERT_NULL(ptr)                                      \
-    do {                                                          \
-        if ((ptr) != NULL) {                                      \
-            BUT_ASSERT_IMPL("Expected: NULL. Actual: %p", (ptr)); \
-        }                                                         \
+#define BUT_ASSERT_NULL(PTR)                                                        \
+    do {                                                                            \
+        if ((PTR) != NULL) {                                                        \
+            BUT_ASSERT_REASON_IMPL(but_invalid_value, "Expected: NULL. Actual: %p", \
+                                   (PTR));                                          \
+        }                                                                           \
     } while (0)
 
-#define BUT_ASSERT_NOT_NULL(ptr)                                              \
-    do {                                                                      \
-        if ((ptr) == NULL) {                                                  \
-            BUT_ASSERT_IMPL("Expected: non-NULL pointer. Actual: %p", (ptr)); \
-        }                                                                     \
+#define BUT_ASSERT_NOT_NULL(PTR)                                                     \
+    do {                                                                             \
+        if ((PTR) == NULL) {                                                         \
+            BUT_ASSERT_REASON_IMPL(but_invalid_value,                                \
+                                   "Expected: non-NULL pointer. Actual: %p", (PTR)); \
+        }                                                                            \
     } while (0)
 
-#define BUT_ASSERT_EQ_PTR(expected, actual)                                                    \
-    do {                                                                                       \
-        if ((expected) != (actual)) {                                                          \
-            BUT_ASSERT_IMPL("Expected: pointer %p. Actual: pointer %p", (expected), (actual)); \
-        }                                                                                      \
+#define BUT_ASSERT_EQ_PTR(EXPECTED, ACTUAL)                                         \
+    do {                                                                            \
+        if ((EXPECTED) != (ACTUAL)) {                                               \
+            BUT_ASSERT_IMPL("Expected: pointer %p. Actual: pointer %p", (EXPECTED), \
+                            (ACTUAL));                                              \
+        }                                                                           \
     } while (0)
 
-#define BUT_ASSERT_NEQ_PTR(expected, actual)                                            \
+#define BUT_ASSERT_NEQ_PTR(EXPECTED, ACTUAL)                                            \
     do {                                                                                \
-        if ((expected) == (actual)) {                                                   \
-            BUT_ASSERT_IMPL("Expected: different pointers. Actual: both %p", (actual)); \
+        if ((EXPECTED) == (ACTUAL)) {                                                   \
+            BUT_ASSERT_IMPL("Expected: different pointers. Actual: both %p", (ACTUAL)); \
         }                                                                               \
     } while (0)
 
 // String comparisons
-#define BUT_ASSERT_STREQ(expected, actual)                                                               \
-    do {                                                                                                 \
-        const char *_e = (expected);                                                                     \
-        const char *_a = (actual);                                                                       \
-        if (!_e || !_a || strcmp(_e, _a) != 0) {                                                         \
-            BUT_ASSERT_IMPL("Expected: \"%s\". Actual: \"%s\"", _e ? _e : "(null)", _a ? _a : "(null)"); \
-        }                                                                                                \
+#define BUT_ASSERT_STREQ(EXPECTED, ACTUAL)                                          \
+    do {                                                                            \
+        const char *_e = (EXPECTED);                                                \
+        const char *_a = (ACTUAL);                                                  \
+        if (!_e || !_a || strcmp(_e, _a) != 0) {                                    \
+            BUT_ASSERT_IMPL("Expected: \"%s\". Actual: \"%s\"", _e ? _e : "(null)", \
+                            _a ? _a : "(null)");                                    \
+        }                                                                           \
     } while (0)
 
-#define BUT_ASSERT_STRNEQ(expected, actual)                                                     \
-    do {                                                                                        \
-        const char *_e = (expected);                                                            \
-        const char *_a = (actual);                                                              \
-        if (!_e || !_a || strcmp(_e, _a) == 0) {                                                \
-            BUT_ASSERT_IMPL("Expected: different strings. Actual: \"%s\"", _a ? _a : "(null)"); \
-        }                                                                                       \
+#define BUT_ASSERT_STRNEQ(EXPECTED, ACTUAL)                                \
+    do {                                                                   \
+        const char *_e = (EXPECTED);                                       \
+        const char *_a = (ACTUAL);                                         \
+        if (!_e || !_a || strcmp(_e, _a) == 0) {                           \
+            BUT_ASSERT_IMPL("Expected: different strings. Actual: \"%s\"", \
+                            _a ? _a : "(null)");                           \
+        }                                                                  \
     } while (0)
 
 // Memory comparison
-#define BUT_ASSERT_MEM_EQ(expected, actual, size)                                               \
-    do {                                                                                        \
-        if (memcmp((expected), (actual), (size)) != 0) {                                        \
-            BUT_ASSERT_IMPL("Expected: identical memory blocks for %zu bytes", (size_t)(size)); \
-        }                                                                                       \
+#define BUT_ASSERT_MEM_EQ(EXPECTED, ACTUAL, size)                              \
+    do {                                                                       \
+        if (memcmp((EXPECTED), (ACTUAL), (size)) != 0) {                       \
+            BUT_ASSERT_IMPL("Expected: identical memory blocks for %zu bytes", \
+                            (size_t)(size));                                   \
+        }                                                                      \
     } while (0)
 
-#define BUT_ASSERT_MEM_NEQ(expected, actual, size)                                              \
-    do {                                                                                        \
-        if (memcmp((expected), (actual), (size)) == 0) {                                        \
-            BUT_ASSERT_IMPL("Expected: different memory blocks for %zu bytes", (size_t)(size)); \
-        }                                                                                       \
+#define BUT_ASSERT_MEM_NEQ(EXPECTED, ACTUAL, size)                             \
+    do {                                                                       \
+        if (memcmp((EXPECTED), (ACTUAL), (size)) == 0) {                       \
+            BUT_ASSERT_IMPL("Expected: different memory blocks for %zu bytes", \
+                            (size_t)(size));                                   \
+        }                                                                      \
     } while (0)
 
-#define BUT_ASSERT_FLOAT_EQ(expected, actual, epsilon)                                               \
-    do {                                                                                             \
-        if (fabs((expected) - (actual)) > (epsilon)) {                                               \
-            BUT_ASSERT_IMPL("Expected: %.6f ± %.6f. Actual: %.6f", (expected), (epsilon), (actual)); \
-        }                                                                                            \
+#define BUT_ASSERT_FLOAT_EQ(EXPECTED, ACTUAL, epsilon)                         \
+    do {                                                                       \
+        if (fabs((EXPECTED) - (ACTUAL)) > (epsilon)) {                         \
+            BUT_ASSERT_IMPL("Expected: %.6f ± %.6f. Actual: %.6f", (EXPECTED), \
+                            (epsilon), (ACTUAL));                              \
+        }                                                                      \
     } while (0)
 
-#define BUT_ASSERT_DOUBLE_EQ(expected, actual, epsilon)                                                 \
-    do {                                                                                                \
-        if (fabs((expected) - (actual)) > (epsilon)) {                                                  \
-            BUT_ASSERT_IMPL("Expected: %.6lf ± %.6lf. Actual: %.6lf", (expected), (epsilon), (actual)); \
-        }                                                                                               \
+#define BUT_ASSERT_DOUBLE_EQ(EXPECTED, ACTUAL, epsilon)                           \
+    do {                                                                          \
+        if (fabs((EXPECTED) - (ACTUAL)) > (epsilon)) {                            \
+            BUT_ASSERT_IMPL("Expected: %.6lf ± %.6lf. Actual: %.6lf", (EXPECTED), \
+                            (epsilon), (ACTUAL));                                 \
+        }                                                                         \
+    } while (0)
+
+#define BUT_ASSERT_SIZE_RANGE(size, min, max, file, line)                               \
+    do {                                                                                \
+        if ((size) < (min) || (size) > (max)) {                                         \
+            BUT_THROW_DETAILS_FILE_LINE(but_invalid_value,                              \
+                                        "size %zu out of range [%zu, %zu]", file, line, \
+                                        (size_t)(size), (size_t)(min), (size_t)(max));  \
+        }                                                                               \
+    } while (0)
+
+#define BUT_ASSERT_MULTIPLICATION_OVERFLOW(a, b, file, line)                        \
+    do {                                                                            \
+        if ((a) > 0 && (b) > SIZE_MAX / (a)) {                                      \
+            BUT_THROW_DETAILS_FILE_LINE(but_invalid_value,                          \
+                                        "multiplication overflow: %zu * %zu", file, \
+                                        line, (size_t)(a), (size_t)(b));            \
+        }                                                                           \
     } while (0)
 
 // Generic macros (type-agnostic), but requires C11 or later for _Generic support
@@ -236,8 +327,8 @@ extern "C" {
 #endif
 // clang-format on
 
-#define BUT_ASSERT_EQ(expected, actual)     \
-    _Generic((expected),                    \
+#define BUT_ASSERT_EQ(EXPECTED, ACTUAL)     \
+    _Generic((EXPECTED),                    \
         int: BUT_ASSERT_EQ_INT,             \
         unsigned int: BUT_ASSERT_EQ_UINT,   \
         long: BUT_ASSERT_EQ_LONG,           \
@@ -250,10 +341,10 @@ extern "C" {
         void *: BUT_ASSERT_EQ_PTR,          \
         char *: BUT_ASSERT_STREQ,           \
         const char *: BUT_ASSERT_STREQ,     \
-        BUT_ASSERT_EQ_CUSTOM)(expected, actual)
+        BUT_ASSERT_EQ_CUSTOM)(EXPECTED, ACTUAL)
 
-#define BUT_ASSERT_NEQ(expected, actual)     \
-    _Generic((expected),                     \
+#define BUT_ASSERT_NEQ(EXPECTED, ACTUAL)     \
+    _Generic((EXPECTED),                     \
         int: BUT_ASSERT_NEQ_INT,             \
         unsigned int: BUT_ASSERT_NEQ_UINT,   \
         long: BUT_ASSERT_NEQ_LONG,           \
@@ -266,10 +357,10 @@ extern "C" {
         void *: BUT_ASSERT_NEQ_PTR,          \
         char *: BUT_ASSERT_STRNEQ,           \
         const char *: BUT_ASSERT_STRNEQ,     \
-        BUT_ASSERT_NEQ_CUSTOM)(expected, actual)
+        BUT_ASSERT_NEQ_CUSTOM)(EXPECTED, ACTUAL)
 
-#define BUT_ASSERT_LT(expected, actual)     \
-    _Generic((expected),                    \
+#define BUT_ASSERT_LT(EXPECTED, ACTUAL)     \
+    _Generic((EXPECTED),                    \
         int: BUT_ASSERT_LT_INT,             \
         unsigned int: BUT_ASSERT_LT_UINT,   \
         long: BUT_ASSERT_LT_LONG,           \
@@ -279,10 +370,10 @@ extern "C" {
         uint32_t: BUT_ASSERT_LT_UINT32,     \
         int64_t: BUT_ASSERT_LT_INT64,       \
         uintptr_t: BUT_ASSERT_LT_UINTPTR,   \
-        BUT_ASSERT_LT_CUSTOM)(expected, actual)
+        BUT_ASSERT_LT_CUSTOM)(EXPECTED, ACTUAL)
 
-#define BUT_ASSERT_LE(expected, actual)     \
-    _Generic((expected),                    \
+#define BUT_ASSERT_LE(EXPECTED, ACTUAL)     \
+    _Generic((EXPECTED),                    \
         int: BUT_ASSERT_LE_INT,             \
         unsigned int: BUT_ASSERT_LE_UINT,   \
         long: BUT_ASSERT_LE_LONG,           \
@@ -292,10 +383,10 @@ extern "C" {
         uint32_t: BUT_ASSERT_LE_UINT32,     \
         int64_t: BUT_ASSERT_LE_INT64,       \
         uintptr_t: BUT_ASSERT_LE_UINTPTR,   \
-        BUT_ASSERT_LE_CUSTOM)(expected, actual)
+        BUT_ASSERT_LE_CUSTOM)(EXPECTED, ACTUAL)
 
-#define BUT_ASSERT_GT(expected, actual)     \
-    _Generic((expected),                    \
+#define BUT_ASSERT_GT(EXPECTED, ACTUAL)     \
+    _Generic((EXPECTED),                    \
         int: BUT_ASSERT_GT_INT,             \
         unsigned int: BUT_ASSERT_GT_UINT,   \
         long: BUT_ASSERT_GT_LONG,           \
@@ -305,10 +396,10 @@ extern "C" {
         uint32_t: BUT_ASSERT_GT_UINT32,     \
         int64_t: BUT_ASSERT_GT_INT64,       \
         uintptr_t: BUT_ASSERT_GT_UINTPTR,   \
-        BUT_ASSERT_GT_CUSTOM)(expected, actual)
+        BUT_ASSERT_GT_CUSTOM)(EXPECTED, ACTUAL)
 
-#define BUT_ASSERT_GE(expected, actual)     \
-    _Generic((expected),                    \
+#define BUT_ASSERT_GE(EXPECTED, ACTUAL)     \
+    _Generic((EXPECTED),                    \
         int: BUT_ASSERT_GE_INT,             \
         unsigned int: BUT_ASSERT_GE_UINT,   \
         long: BUT_ASSERT_GE_LONG,           \
@@ -318,7 +409,7 @@ extern "C" {
         uint32_t: BUT_ASSERT_GE_UINT32,     \
         int64_t: BUT_ASSERT_GE_INT64,       \
         uintptr_t: BUT_ASSERT_GE_UINTPTR,   \
-        BUT_ASSERT_GE_CUSTOM)(expected, actual)
+        BUT_ASSERT_GE_CUSTOM)(EXPECTED, ACTUAL)
 
 #if defined(__cplusplus)
 }

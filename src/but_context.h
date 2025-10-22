@@ -38,7 +38,6 @@ typedef struct ResultContext ResultContext;
  * of each test.
  */
 typedef struct BUTEnvironment {
-    bool                 initialized;      ///< indicates a valid context
     struct BUTTestSuite *bts;              ///< the test suite under test
     u32                  test_case_count;  ///< the number of test cases in the suite
     u32                  index;            ///< index of the current test case
@@ -49,13 +48,14 @@ typedef struct BUTEnvironment {
     u32                  results_count;    ///< number of test results
     u32                  results_capacity; ///< number of results that can be stored
     ResultContext       *results;          ///< a resizable array of test results.
+    bool                 initialized;      ///< indicates a valid context
 } BUTEnvironment;
 
 /**
  * @brief A test context combines an exception context and a test environment.
  */
 typedef struct BUTContext {
-    BUTExceptionContext but_ctx;
+    BUTExceptionContext exception_context;
     BUTEnvironment      env;
 } BUTContext;
 

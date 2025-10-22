@@ -11,6 +11,7 @@
 #include "../../src/but_result_context.c"
 #include "../../src/exception_assert.c"
 #include "../../src/exception.c"
+#include "../../src/log.c"
 
 #include <but_macros.h> // BUT_CONTAINER
 
@@ -36,7 +37,7 @@
  * @param line the line number on which the exception was thrown.
  */
 static BUT_HANDLER_FN(exception_handler) {
-    BUTContext *bctx = BUT_CONTAINER(ctx, BUTContext, but_ctx);
+    BUTContext *bctx = BUT_CONTAINER(ctx, BUTContext, exception_context);
 
     if (BUT_UNEXPECTED_EXCEPTION(reason)) {
         BUTTestSuite *bts = bctx->env.bts;
@@ -44,22 +45,9 @@ static BUT_HANDLER_FN(exception_handler) {
         if (bctx->env.index < bts->count) {
             name = bts->test_cases[bctx->env.index]->name;
         } else {
-            name = "Unamed";
+            name = "Unknown";
         }
-        if (details != NULL) {
-            if (file != NULL) {
-                printf("        Unexpected Exception: %s. %s, @%s:%d\n", reason, details,
-                       file, line);
-            } else {
-                printf("        Unexpected Exception: %s. %s\n", reason, details);
-            }
-        } else {
-            if (file != NULL) {
-                printf("        Unexpected Exception: %s. @%s:%d\n", reason, file, line);
-            } else {
-                printf("        Unexpected Exception: %s.\n", reason);
-            }
-        }
+        but_log_error(name, reason, details, file, line);
     }
 }
 
@@ -155,7 +143,15 @@ int main(int argc, char **argv) {
 
     if (argc > 1) {
         int test_suites = 0;
+        logger_init();
+        logger_set_level(LOG_INFO);
+        FILE   *logfile;
+        errno_t logfile_error = fopen_s(&logfile, "but.log", "a");
+        if (logfile_error == 0) {
+            logger_set_output(logfile);
+        }
 
+        BUT_TRY {
         // Assume each argument is a path to a test suite
         for (i = 1; i < argc; i++) {
             ts_path    = argv[i];
@@ -173,14 +169,15 @@ int main(int argc, char **argv) {
                 }
 
                 get_test_suite
-                    = (but_get_test_suite)GetProcAddress(test_suite, "get_test_suite");
+                        = (but_get_test_suite)GetProcAddress(test_suite,
+                                                             "get_test_suite");
                 if (get_test_suite) {
                     but_initialize(&bctx, exception_handler);
                     // register our exception handler with the test suite.
-                    set_context(&bctx.but_ctx);
+                        set_context(&bctx.exception_context, __FILE__, __LINE__);
                     bts = get_test_suite();
-                    printf("\n%s (%u): test suite %d of %d\n", bts->name, bts->count, i,
-                           argc - 1);
+                        printf("\n%s (%u): test suite %d of %d\n", bts->name, bts->count,
+                               i, argc - 1);
                     exercise_test_suite(&bctx, bts);
                     test_suites++;
                     if (i < argc) {
@@ -202,6 +199,13 @@ int main(int argc, char **argv) {
         } else {
             printf("\nExercised %d of %d test suites.\n", test_suites, argc - 1);
         }
+        }
+        BUT_FINALLY {
+            if (logfile_error == 0) {
+                fclose(logfile);
+            }
+        }
+        BUT_END_TRY;
     } else {
         printf("Usage: %s (path to test suite)+\n", argv[0]);
     }

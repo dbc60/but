@@ -1,5 +1,5 @@
-#ifndef TEST_H_
-#define TEST_H_
+#ifndef BUT_TEST_H_
+#define BUT_TEST_H_
 
 /**
  * @file but_test.h
@@ -58,6 +58,7 @@ struct TestDriverData {
     get_set_up_fail_count_fn      get_failed_set_up_count;
     get_results_count_fn          get_results_count;
     get_result_fn                 get_result;
+    void (*throw_me)(BUTContext *ctx);
 };
 typedef struct TestDriverData TestDriverData;
 
@@ -70,4 +71,4 @@ extern TestDriverData test_case_index_case;
 extern TestDriverData test_case;
 extern TestDriverData results_case;
 
-#endif // TEST_H_
+#endif // BUT_TEST_H_

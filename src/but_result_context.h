@@ -25,6 +25,8 @@ struct ResultContext {
     u32           index;  ///< the index of the test case
     BUTResultCode status; ///< indicate state of test result
     char const   *reason; ///< a string describing the reason for a failure
+    char const   *file;
+    int           line;
 };
 
 /**
@@ -35,6 +37,7 @@ struct ResultContext {
  * @param status a test-result code.
  * @param reason a string describing the reason for the test failure.
  */
-void new_result(BUTContext *bctx, BUTResultCode status, char const *reason);
+void new_result(BUTContext *bctx, BUTResultCode status, char const *reason,
+                char const *file, int line);
 
 #endif // BUT_RESULT_CONTEXT_H_
