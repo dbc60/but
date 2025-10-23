@@ -44,43 +44,75 @@ jobs:
         echo "VERSION=$version" >> $env:GITHUB_OUTPUT
       shell: powershell
 
-    - name: Create release package
+    - name: Create release packages
       id: create_package
       run: |
         $projectName = "but"
         $version = "${{ steps.get_version.outputs.VERSION }}"
         $platform = "windows"
         $arch = "${{ matrix.platform }}"
-        $zipName = "$projectName-$version-$platform-$arch.zip"
+        $runtimeZipName = "$projectName-$version-$platform-$arch.zip"
+        $sdkZipName = "$projectName-sdk-$version-$platform-$arch.zip"
 
-        # Create a temporary directory for the release files
-        New-Item -ItemType Directory -Path "release-temp" -Force
+        # ===== Create Runtime Package =====
+        New-Item -ItemType Directory -Path "release-runtime" -Force
 
-        # Find and copy the built executable and any DLLs
-        Get-ChildItem -Path "target" -Recurse -Filter "but.exe" | Where-Object { $_.Directory.Name -eq "bin" } | Copy-Item -Destination "release-temp/"
-        Get-ChildItem -Path "target" -Recurse -Filter "*.dll" | Where-Object { $_.Directory.Name -eq "bin" } | Copy-Item -Destination "release-temp/"
+        # Find and copy the built executable and test suite DLLs
+        Get-ChildItem -Path "target" -Recurse -Filter "but.exe" | Where-Object { $_.Directory.Name -eq "bin" } | Copy-Item -Destination "release-runtime/"
+        Get-ChildItem -Path "target" -Recurse -Filter "*.dll" | Where-Object { $_.Directory.Name -eq "bin" } | Copy-Item -Destination "release-runtime/"
 
         # Add documentation files if they exist
-        if (Test-Path "README.md") { Copy-Item "README.md" "release-temp/" }
-        if (Test-Path "LICENSE") { Copy-Item "LICENSE" "release-temp/" }
-        if (Test-Path "CHANGELOG.md") { Copy-Item "CHANGELOG.md" "release-temp/" }
+        if (Test-Path "README.md") { Copy-Item "README.md" "release-runtime/" }
+        if (Test-Path "LICENSE") { Copy-Item "LICENSE" "release-runtime/" }
+        if (Test-Path "CHANGELOG.md") { Copy-Item "CHANGELOG.md" "release-runtime/" }
 
-        # Create the zip file
-        Compress-Archive -Path "release-temp/*" -DestinationPath $zipName
+        # Create the runtime zip file
+        Compress-Archive -Path "release-runtime/*" -DestinationPath $runtimeZipName
+        Remove-Item -Recurse -Force "release-runtime"
+        echo "Created runtime package: $runtimeZipName"
 
-        # Clean up temp directory
-        Remove-Item -Recurse -Force "release-temp"
+        # ===== Create SDK Package =====
+        New-Item -ItemType Directory -Path "release-sdk" -Force
+        New-Item -ItemType Directory -Path "release-sdk/lib" -Force
+        New-Item -ItemType Directory -Path "release-sdk/include" -Force
+        New-Item -ItemType Directory -Path "release-sdk/examples" -Force
 
-        # Output the filename for use in release step
-        echo "ZIP_NAME=$zipName" >> $env:GITHUB_OUTPUT
-        echo "Created package: $zipName"
+        # Copy static library
+        Get-ChildItem -Path "target" -Recurse -Filter "but.lib" | Where-Object { $_.Directory.Name -eq "lib" } | Copy-Item -Destination "release-sdk/lib/"
+
+        # Copy header files
+        Get-ChildItem -Path "target" -Recurse -Filter "*.h" | Where-Object { $_.Directory.Name -eq "inc" } | Copy-Item -Destination "release-sdk/include/"
+
+        # Copy example test suite source
+        if (Test-Path "src/exception_butts.c") { Copy-Item "src/exception_butts.c" "release-sdk/examples/" }
+
+        # Add documentation files
+        if (Test-Path "README.md") { Copy-Item "README.md" "release-sdk/" }
+        if (Test-Path "LICENSE") { Copy-Item "LICENSE" "release-sdk/" }
+        if (Test-Path "CHANGELOG.md") { Copy-Item "CHANGELOG.md" "release-sdk/" }
+
+        # Create the SDK zip file
+        Compress-Archive -Path "release-sdk/*" -DestinationPath $sdkZipName
+        Remove-Item -Recurse -Force "release-sdk"
+        echo "Created SDK package: $sdkZipName"
+
+        # Output filenames for use in release step
+        echo "RUNTIME_ZIP_NAME=$runtimeZipName" >> $env:GITHUB_OUTPUT
+        echo "SDK_ZIP_NAME=$sdkZipName" >> $env:GITHUB_OUTPUT
       shell: powershell
 
-    - name: Upload release artifact
+    - name: Upload runtime package
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ steps.create_package.outputs.ZIP_NAME }}
-        path: ${{ steps.create_package.outputs.ZIP_NAME }}
+        name: ${{ steps.create_package.outputs.RUNTIME_ZIP_NAME }}
+        path: ${{ steps.create_package.outputs.RUNTIME_ZIP_NAME }}
+        retention-days: 1  # Short retention since we'll create a release
+
+    - name: Upload SDK package
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.create_package.outputs.SDK_ZIP_NAME }}
+        path: ${{ steps.create_package.outputs.SDK_ZIP_NAME }}
         retention-days: 1  # Short retention since we'll create a release
 
   create-release:
@@ -103,14 +135,37 @@ jobs:
         body: |
           ## BUT ${{ github.ref_name }}
 
-          ### Downloads
+          Basic Unit Test (BUT) is a C unit test framework with setjmp/longjmp-based exception handling.
+
+          ### Runtime Packages
+          Download these to run existing test suites:
           - `but-${{ github.ref_name }}-windows-x64.zip` - 64-bit Windows version
           - `but-${{ github.ref_name }}-windows-x86.zip` - 32-bit Windows version
 
-          ### Installation
-          1. Download the appropriate zip file for your system
-          2. Extract the contents to your desired location
-          3. Run `but.exe`
+          **Contents**: `but.exe` test driver and example test suite DLLs
+
+          ### SDK Packages
+          Download these to develop your own test suites:
+          - `but-sdk-${{ github.ref_name }}-windows-x64.zip` - 64-bit Windows SDK
+          - `but-sdk-${{ github.ref_name }}-windows-x86.zip` - 32-bit Windows SDK
+
+          **Contents**:
+          - `but.lib` - Static library to link with your test suites
+          - Header files (but.h, but_assert.h, exception.h, etc.)
+          - Example test suite source code
+
+          ### Quick Start
+
+          **Using the Runtime:**
+          1. Download and extract the runtime package
+          2. Run: `but.exe your_test_suite.dll`
+
+          **Developing Test Suites:**
+          1. Download and extract the SDK package
+          2. Include headers: `#include <but.h>`, `#include <but_assert.h>`
+          3. Write tests using `BUT_TEST` macros
+          4. Compile as DLL with `/DDLL_BUILD` and link against `but.lib`
+          5. Run with `but.exe your_test_suite.dll`
         draft: false
         prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || startsWith(github.ref_name, 'v0.') }}
       env:

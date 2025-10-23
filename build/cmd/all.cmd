@@ -34,6 +34,14 @@ if errorlevel 1 (
     GOTO :EOF
 )
 
+call %DIR_CMD%\but_lib.cmd !args!
+if errorlevel 1 (
+    if %timed% EQU 1 (
+        ctime.exe -end metrics\all.ctm %errorlevel%
+    )
+    GOTO :EOF
+)
+
 call %DIR_CMD%\but.cmd !args!
 if errorlevel 1 (
     if %timed% EQU 1 (
