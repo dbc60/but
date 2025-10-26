@@ -68,14 +68,14 @@ jobs:
         New-Item -ItemType Directory -Path "release-sdk/examples" -Force
 
         # Copy debug build artifacts
-        Get-ChildItem -Path "target" -Recurse -Filter "but.exe" | Where-Object { $_.FullName -match "\\debug\\.*\\bin" } | Copy-Item -Destination "release-sdk/debug/bin/"
-        Get-ChildItem -Path "target" -Recurse -Filter "*.dll" | Where-Object { $_.FullName -match "\\debug\\.*\\bin" } | Copy-Item -Destination "release-sdk/debug/bin/"
-        Get-ChildItem -Path "target" -Recurse -Filter "but.lib" | Where-Object { $_.FullName -match "\\debug\\.*\\lib" } | Copy-Item -Destination "release-sdk/debug/lib/"
+        Get-ChildItem -Path "target" -Recurse -Filter "but.exe" | Where-Object { $_.Directory.Name -eq "bin" -and $_.FullName -like "*\debug\*" } | Copy-Item -Destination "release-sdk/debug/bin/"
+        Get-ChildItem -Path "target" -Recurse -Filter "*.dll" | Where-Object { $_.Directory.Name -eq "bin" -and $_.FullName -like "*\debug\*" } | Copy-Item -Destination "release-sdk/debug/bin/"
+        Get-ChildItem -Path "target" -Recurse -Filter "but.lib" | Where-Object { $_.Directory.Name -eq "lib" -and $_.FullName -like "*\debug\*" } | Copy-Item -Destination "release-sdk/debug/lib/"
 
         # Copy release build artifacts
-        Get-ChildItem -Path "target" -Recurse -Filter "but.exe" | Where-Object { $_.FullName -match "\\release\\.*\\bin" } | Copy-Item -Destination "release-sdk/release/bin/"
-        Get-ChildItem -Path "target" -Recurse -Filter "*.dll" | Where-Object { $_.FullName -match "\\release\\.*\\bin" } | Copy-Item -Destination "release-sdk/release/bin/"
-        Get-ChildItem -Path "target" -Recurse -Filter "but.lib" | Where-Object { $_.FullName -match "\\release\\.*\\lib" } | Copy-Item -Destination "release-sdk/release/lib/"
+        Get-ChildItem -Path "target" -Recurse -Filter "but.exe" | Where-Object { $_.Directory.Name -eq "bin" -and $_.FullName -like "*\release\*" } | Copy-Item -Destination "release-sdk/release/bin/"
+        Get-ChildItem -Path "target" -Recurse -Filter "*.dll" | Where-Object { $_.Directory.Name -eq "bin" -and $_.FullName -like "*\release\*" } | Copy-Item -Destination "release-sdk/release/bin/"
+        Get-ChildItem -Path "target" -Recurse -Filter "but.lib" | Where-Object { $_.Directory.Name -eq "lib" -and $_.FullName -like "*\release\*" } | Copy-Item -Destination "release-sdk/release/lib/"
 
         # Copy header files
         Get-ChildItem -Path "target" -Recurse -Filter "*.h" | Where-Object { $_.Directory.Name -eq "inc" } | Copy-Item -Destination "release-sdk/include/"
