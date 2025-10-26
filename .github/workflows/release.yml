@@ -28,6 +28,11 @@ jobs:
       with:
         arch: ${{ matrix.platform }}
 
+    - name: Build BUT project (debug, ${{ matrix.platform }})
+      run: |
+        .\build\cmd\all.cmd debug ${{ matrix.platform }} build
+      shell: cmd
+
     - name: Build BUT project (release, ${{ matrix.platform }})
       run: |
         .\build\cmd\all.cmd release ${{ matrix.platform }} build
@@ -55,17 +60,22 @@ jobs:
 
         # ===== Create SDK Package =====
         New-Item -ItemType Directory -Path "release-sdk" -Force
-        New-Item -ItemType Directory -Path "release-sdk/bin" -Force
-        New-Item -ItemType Directory -Path "release-sdk/lib" -Force
+        New-Item -ItemType Directory -Path "release-sdk/debug/bin" -Force
+        New-Item -ItemType Directory -Path "release-sdk/debug/lib" -Force
+        New-Item -ItemType Directory -Path "release-sdk/release/bin" -Force
+        New-Item -ItemType Directory -Path "release-sdk/release/lib" -Force
         New-Item -ItemType Directory -Path "release-sdk/include" -Force
         New-Item -ItemType Directory -Path "release-sdk/examples" -Force
 
-        # Copy runtime executable and example DLLs
-        Get-ChildItem -Path "target" -Recurse -Filter "but.exe" | Where-Object { $_.Directory.Name -eq "bin" } | Copy-Item -Destination "release-sdk/bin/"
-        Get-ChildItem -Path "target" -Recurse -Filter "*.dll" | Where-Object { $_.Directory.Name -eq "bin" } | Copy-Item -Destination "release-sdk/bin/"
+        # Copy debug build artifacts
+        Get-ChildItem -Path "target" -Recurse -Filter "but.exe" | Where-Object { $_.FullName -match "\\debug\\.*\\bin" } | Copy-Item -Destination "release-sdk/debug/bin/"
+        Get-ChildItem -Path "target" -Recurse -Filter "*.dll" | Where-Object { $_.FullName -match "\\debug\\.*\\bin" } | Copy-Item -Destination "release-sdk/debug/bin/"
+        Get-ChildItem -Path "target" -Recurse -Filter "but.lib" | Where-Object { $_.FullName -match "\\debug\\.*\\lib" } | Copy-Item -Destination "release-sdk/debug/lib/"
 
-        # Copy static library
-        Get-ChildItem -Path "target" -Recurse -Filter "but.lib" | Where-Object { $_.Directory.Name -eq "lib" } | Copy-Item -Destination "release-sdk/lib/"
+        # Copy release build artifacts
+        Get-ChildItem -Path "target" -Recurse -Filter "but.exe" | Where-Object { $_.FullName -match "\\release\\.*\\bin" } | Copy-Item -Destination "release-sdk/release/bin/"
+        Get-ChildItem -Path "target" -Recurse -Filter "*.dll" | Where-Object { $_.FullName -match "\\release\\.*\\bin" } | Copy-Item -Destination "release-sdk/release/bin/"
+        Get-ChildItem -Path "target" -Recurse -Filter "but.lib" | Where-Object { $_.FullName -match "\\release\\.*\\lib" } | Copy-Item -Destination "release-sdk/release/lib/"
 
         # Copy header files
         Get-ChildItem -Path "target" -Recurse -Filter "*.h" | Where-Object { $_.Directory.Name -eq "inc" } | Copy-Item -Destination "release-sdk/include/"
@@ -122,11 +132,13 @@ jobs:
           - `but-sdk-${{ github.ref_name }}-windows-x86.zip` - 32-bit Windows
 
           ### Package Contents
-          Each SDK package includes:
-          - **Runtime**: `bin/but.exe` - Test driver executable
-          - **Development**: `lib/but.lib` - Static library for linking
+          Each SDK package includes both debug and release configurations:
+          - **Debug Runtime**: `debug/bin/but.exe` - Test driver executable (debug build)
+          - **Debug Library**: `debug/lib/but.lib` - Static library for linking (debug build)
+          - **Release Runtime**: `release/bin/but.exe` - Test driver executable (release build)
+          - **Release Library**: `release/lib/but.lib` - Static library for linking (release build)
           - **Headers**: `include/*.h` - All public headers (but.h, but_assert.h, exception.h, etc.)
-          - **Examples**: Example test suite DLLs and source code
+          - **Examples**: Example test suite DLLs and source code (both debug and release)
           - **Documentation**: README, LICENSE
 
           ### Quick Start
@@ -138,8 +150,12 @@ jobs:
           ```
 
           **2. Try the examples:**
-          ```
-          bin\but.exe bin\exception_butts.dll
+          ```cmd
+          REM Run debug examples
+          debug\bin\but.exe debug\bin\exception_butts.dll
+
+          REM Run release examples
+          release\bin\but.exe release\bin\exception_butts.dll
           ```
 
           **3. Write your own tests:**
@@ -158,10 +174,16 @@ jobs:
           BUT_GET_TEST_SUITE("My Tests", my_suite);
           ```
 
-          **4. Build and run:**
+          **4. Build and run (debug):**
           ```cmd
-          cl /I"path\to\sdk\include" /DDLL_BUILD my_tests.c /LD /link "path\to\sdk\lib\but.lib"
-          path\to\sdk\bin\but.exe my_tests.dll
+          cl /I"path\to\sdk\include" /DDLL_BUILD /Od /Zi my_tests.c /LD /link "path\to\sdk\debug\lib\but.lib"
+          path\to\sdk\debug\bin\but.exe my_tests.dll
+          ```
+
+          **4. Build and run (release):**
+          ```cmd
+          cl /I"path\to\sdk\include" /DDLL_BUILD /O2 my_tests.c /LD /link "path\to\sdk\release\lib\but.lib"
+          path\to\sdk\release\bin\but.exe my_tests.dll
           ```
         draft: false
         prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || startsWith(github.ref_name, 'v0.') }}
